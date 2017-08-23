@@ -14,7 +14,7 @@ pipeline {
       steps {
         sh '''
           npm install
-          ng build
+          ng build --aot -e prod --bh '/gpfjs' -d '/static/gpfjs'
         '''
       }
     }
