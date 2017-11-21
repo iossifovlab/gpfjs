@@ -15,7 +15,9 @@ pipeline {
         sh '''
           npm install
           ng build --aot -e deploy --bh '/gpf/' -d '/gpf/'
-          tar zcvf gpfjs-dist.tar.gz -C dist *
+          cd dist/
+          tar zcvf ../gpfjs-dist.tar.gz .
+          cd -
         '''
       }
     }
