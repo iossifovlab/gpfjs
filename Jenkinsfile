@@ -14,7 +14,10 @@ pipeline {
       steps {
         sh '''
           npm install
-          ng build --aot -e prod --bh '/gpfjs' -d '/static/gpfjs'
+          ng build --aot -e deploy --bh '/gpf/' -d '/gpf/'
+          cd dist/
+          tar zcvf ../gpfjs-dist.tar.gz .
+          cd -
         '''
       }
     }
@@ -26,6 +29,8 @@ pipeline {
         message: "SUCCESSFUL: Job '${env.JOB_NAME} " +
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
+      archive 'gpfjs-dist.tar.gz'
+      fingerprint 'gpfjs-dist.tar.gz'
     }
     failure {
       slackSend (
