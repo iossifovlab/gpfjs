@@ -15,6 +15,7 @@ pipeline {
         sh '''
           npm install
           ng build --prod --aot -e deploy --bh '/gpf/' -d '/gpf/'
+          python ppindex.py
           cd dist/
           tar zcvf ../gpfjs-dist.tar.gz .
           cd -
