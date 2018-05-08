@@ -20,18 +20,18 @@ pipeline {
       }
     }
     stage('gpfjs build (gpfjs)') {
+      when {
+        expression { $params.webPrefix == 'gpfjs' }
+      }
       steps {
-        when {
-            expression { $params.webPrefix == 'gpfjs' }
-        }
         sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/static/${params.dirPrefix}/'"
       }
     }
     stage('gpfjs build (gpf or gpf38)') {
+      when {
+        expression { $params.webPrefix == 'gpf'  || $params.webPrefix == 'gpf38' }
+      }
       steps {
-        when {
-            expression { return $params.webPrefix == 'gpf'  || $params.webPrefix == 'gpf38' }
-        }
         sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '${params.dirPrefix}/'"
       }
     }
