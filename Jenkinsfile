@@ -1,7 +1,9 @@
 pipeline {
   agent any
   parameters {
-    choice(choices: 'gpf\ngpf38\ngpfjs', description: 'web deployment prefix', name: 'webPrefix')
+    choice(choices: 'gpf\ngpf38\ngpfjs', 
+    description: 'web deployment prefix', 
+    name: 'webPrefix')
   }
   stages {
     stage ('Start') {
@@ -31,7 +33,7 @@ pipeline {
         expression { params.webPrefix == 'gpf'  || params.webPrefix == 'gpf38' }
       }
       steps {
-        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '${params.dirPrefix}/'"
+        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.dirPrefix}/'"
       }
     }
     stage('gpfjs archive') {
