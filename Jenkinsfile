@@ -18,14 +18,11 @@ pipeline {
         echo "webPrefix: ${params.webPrefix}"
         echo '''webPrefix: ${params.webPrefix}'''
 
-        sh '''
-          npm install
-          ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.webPrefix}/'
-          python ppindex.py
-          cd dist/
-          tar zcvf ../gpfjs-dist-${params.webPrefix}.tar.gz .
-          cd -
-        '''
+        sh "npm install"
+        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.webPrefix}/'"
+        sh "python ppindex.py"
+        sh "cd dist/ && tar zcvf ../gpfjs-dist-${params.webPrefix}.tar.gz . && cd -"
+        
       }
     }
   }
