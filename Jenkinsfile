@@ -14,13 +14,29 @@ pipeline {
         )
       }
     }
-    stage('Build') {
+    stage('npm install') {
       steps {
-        echo "webPrefix: ${params.webPrefix}"
-        echo '''webPrefix: ${params.webPrefix}'''
-
         sh "npm install"
-        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.dirPrefix}/'"
+      }
+    }
+    stage('gpfjs build (gpfjs)') {
+      steps {
+        when {
+            expression { $params.webPrefix == 'gpfjs' }
+        }
+        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/static/${params.dirPrefix}/'"
+      }
+    }
+    stage('gpfjs build (gpf or gpf38)') {
+      steps {
+        when {
+            expression { return $params.webPrefix == 'gpf'  || $params.webPrefix == 'gpf38' }
+        }
+        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '${params.dirPrefix}/'"
+      }
+    }
+    stage('gpfjs archive') {
+      steps {
         sh "python ppindex.py"
         sh "cd dist/ && tar zcvf ../gpfjs-dist-${params.webPrefix}.tar.gz . && cd -"
         
