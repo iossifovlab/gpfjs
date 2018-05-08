@@ -21,6 +21,19 @@ pipeline {
       }
     }
     stage('gpfjs build (gpfjs)') {
+      steps {
+        prefixes = ['gpf', 'gpf38', 'gpfjs']
+        directories = ['gpf', 'gpf38', 'static/gpfjs']
+        for(int i=0; i<prefixes.size(); i++) {
+            prefix = prefixes[i]
+            dir = directories[i]
+            
+            sh "ng build --prod --aot -e deploy --bh '/${refix}/' -d '/${dir}/'"
+        }
+      }
+    }
+
+    stage('gpfjs build (gpfjs)') {
       when {
         expression { params.webPrefix == "gpfjs" }
       }
