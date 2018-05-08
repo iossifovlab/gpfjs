@@ -1,5 +1,8 @@
 pipeline {
   agent any
+  parameters {
+    [string(defaultValue: 'gpf', description: 'web deployment prefix', name: 'webPrefix', trim: true)]
+  }
   stages {
     stage ('Start') {
       steps {
@@ -14,10 +17,10 @@ pipeline {
       steps {
         sh '''
           npm install
-          ng build --prod --aot -e deploy --bh '/gpf/' -d '/gpf/'
+          ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.webPrefix}/'
           python ppindex.py
           cd dist/
-          tar zcvf ../gpfjs-dist.tar.gz .
+          tar zcvf ../gpfjs-dist-${params.webPrefix}.tar.gz .
           cd -
         '''
       }
@@ -30,8 +33,8 @@ pipeline {
         message: "SUCCESSFUL: Job '${env.JOB_NAME} " +
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
-      archive 'gpfjs-dist.tar.gz'
-      fingerprint 'gpfjs-dist.tar.gz'
+      archive 'gpfjs-dist-${params.webPrefix}.tar.gz'
+      fingerprint 'gpfjs-dist-${params.webPrefix}.tar.gz'
     }
     failure {
       slackSend (
