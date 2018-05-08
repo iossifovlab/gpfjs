@@ -1,10 +1,5 @@
 pipeline {
   agent any
-  parameters {
-    choice(choices: 'gpf\ngpf38\ngpfjs', 
-    description: 'web deployment prefix', 
-    name: 'webPrefix')
-  }
   stages {
     stage ('Start') {
       steps {
@@ -20,29 +15,25 @@ pipeline {
         sh "npm install"
       }
     }
-    stage('gpfjs build (gpfjs)') {
-      when {
-        expression { params.webPrefix == "gpfjs" }
-      }
+    stage('gpfjs build loop') {
       steps {
-        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/static/${params.dirPrefix}/'"
+        script {
+            def prefixes = ['gpf', 'gpf38', 'gpfjs']
+            def directories = ['gpf', 'gpf38', 'static/gpfjs']
+            for(int i=0; i<prefixes.size(); i++) {
+                def prefix = prefixes[i]
+                def directory = directories[i]
+                
+                sh "rm -rf dist/"
+                sh "ng build --prod --aot -e deploy --bh '/${prefix}/' -d '/${directory}/'"
+                sh "python ppindex.py"
+                sh "cd dist/ && tar zcvf ../gpfjs-dist-${prefix}.tar.gz . && cd -"
+                
+            }
+        }
       }
     }
-    stage('gpfjs build (gpf or gpf38)') {
-      when {
-        expression { params.webPrefix == 'gpf'  || params.webPrefix == 'gpf38' }
-      }
-      steps {
-        sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.dirPrefix}/'"
-      }
-    }
-    stage('gpfjs archive') {
-      steps {
-        sh "python ppindex.py"
-        sh "cd dist/ && tar zcvf ../gpfjs-dist-${params.webPrefix}.tar.gz . && cd -"
-        
-      }
-    }
+
   }
   post {
     success {
@@ -51,8 +42,12 @@ pipeline {
         message: "SUCCESSFUL: Job '${env.JOB_NAME} " +
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
-      archive "gpfjs-dist-${params.webPrefix}.tar.gz"
-      fingerprint "gpfjs-dist-${params.webPrefix}.tar.gz"
+      archive "gpfjs-dist-gpf.tar.gz"
+      archive "gpfjs-dist-gpf38.tar.gz"
+      archive "gpfjs-dist-gpfjs.tar.gz"
+      fingerprint "gpfjs-dist-gpf.tar.gz"
+      fingerprint "gpfjs-dist-gpf38.tar.gz"
+      fingerprint "gpfjs-dist-gpfjs.tar.gz"
     }
     failure {
       slackSend (
