@@ -20,7 +20,7 @@ pipeline {
         sh "npm install"
       }
     }
-    stage('gpfjs build (gpfjs)') {
+    stage('gpfjs build loop') {
       steps {
         script {
             def prefixes = ['gpf', 'gpf38', 'gpfjs']
