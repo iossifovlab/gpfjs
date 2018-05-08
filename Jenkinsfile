@@ -21,7 +21,7 @@ pipeline {
     }
     stage('gpfjs build (gpfjs)') {
       when {
-        expression { $params.webPrefix == 'gpfjs' }
+        expression { params.webPrefix == "gpfjs" }
       }
       steps {
         sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/static/${params.dirPrefix}/'"
@@ -29,7 +29,7 @@ pipeline {
     }
     stage('gpfjs build (gpf or gpf38)') {
       when {
-        expression { $params.webPrefix == 'gpf'  || $params.webPrefix == 'gpf38' }
+        expression { params.webPrefix == 'gpf'  || params.webPrefix == 'gpf38' }
       }
       steps {
         sh "ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '${params.dirPrefix}/'"
