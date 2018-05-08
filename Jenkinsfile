@@ -15,6 +15,9 @@ pipeline {
     }
     stage('Build') {
       steps {
+        echo "webPrefix: ${params.webPrefix}"
+        echo '''webPrefix: ${params.webPrefix}'''
+
         sh '''
           npm install
           ng build --prod --aot -e deploy --bh '/${params.webPrefix}/' -d '/${params.webPrefix}/'
