@@ -24,10 +24,10 @@ pipeline {
             for(int i=0; i<prefixes.size(); i++) {
                 def prefix = prefixes[i]
                 def directory = directories[i]
-                def env = envionments[i]
+                def env = environments[i]
                 
                 sh "rm -rf dist/"
-                sh "ng build --prod --aot -e ${env} --bh '/${prefix}/' -d '/${directory}/'"
+                sh "ng build --prod --aot -e '${env}' --bh '/${prefix}/' -d '/${directory}/'"
                 sh "python ppindex.py"
                 sh "cd dist/ && tar zcvf ../gpfjs-dist-${prefix}.tar.gz . && cd -"
                 
