@@ -29,7 +29,11 @@ pipeline {
                 def prefix = prefixes[i]
                 def directory = directories[i]
                 
-                sh "ng build --prod --aot -e deploy --bh '/${refix}/' -d '/${directory}/'"
+                sh "rm -rf dist/"
+                sh "ng build --prod --aot -e deploy --bh '/${prefix}/' -d '/${directory}/'"
+                sh "python ppindex.py"
+                sh "cd dist/ && tar zcvf ../gpfjs-dist-${prefix}.tar.gz . && cd -"
+                
             }
         }
       }
