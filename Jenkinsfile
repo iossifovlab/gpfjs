@@ -1,8 +1,7 @@
 pipeline {
   agent any
   parameters {
-    string(defaultValue: 'gpf', description: 'web deployment prefix', name: 'webPrefix', trim: true)
-    string(defaultValue: 'gpf', description: 'directory prefix', name: 'dirPrefix', trim: true)
+    choice(choices: 'gpf\ngpf38\ngpfjs', description: 'web deployment prefix', name: 'webPrefix')
   }
   stages {
     stage ('Start') {
