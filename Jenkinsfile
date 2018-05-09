@@ -44,12 +44,14 @@ pipeline {
         message: "SUCCESSFUL: Job '${env.JOB_NAME} " +
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
-      archive "gpfjs-dist-gpf.tar.gz"
-      archive "gpfjs-dist-gpf38.tar.gz"
-      archive "gpfjs-dist-gpfjs.tar.gz"
-      fingerprint "gpfjs-dist-gpf.tar.gz"
-      fingerprint "gpfjs-dist-gpf38.tar.gz"
-      fingerprint "gpfjs-dist-gpfjs.tar.gz"
+      script {
+        def prefixes = ['gpf', 'gpf38', 'gpfjs']
+        for(int i=0; i<prefixes.size(); i++) {
+          def prefix = prefixes[i]
+          archive "gpfjs-dist-${preifx}.tar.gz"
+          fingerprint "gpfjs-dist-${prefix}.tar.gz"
+        }
+      }
     }
     failure {
       slackSend (
