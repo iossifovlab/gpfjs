@@ -48,7 +48,7 @@ pipeline {
         def prefixes = ['gpf', 'gpf38', 'gpfjs']
         for(int i=0; i<prefixes.size(); i++) {
           def prefix = prefixes[i]
-          archive "gpfjs-dist-${preifx}.tar.gz"
+          archive "gpfjs-dist-${prefix}.tar.gz"
           fingerprint "gpfjs-dist-${prefix}.tar.gz"
         }
       }
