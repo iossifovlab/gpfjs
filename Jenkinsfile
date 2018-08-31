@@ -20,7 +20,7 @@ pipeline {
         script {
             def prefixes = ['gpf', 'gpf38', 'gpfjs']
             def directories = ['gpf', 'gpf38', 'static/gpfjs']
-            def environments = ['deploy', 'deploy', 'prod']
+            def environments = ['hg19', 'hg38', 'prod']
             for(int i=0; i<prefixes.size(); i++) {
                 def prefix = prefixes[i]
                 def directory = directories[i]
