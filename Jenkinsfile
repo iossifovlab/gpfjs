@@ -10,17 +10,32 @@ pipeline {
         )
       }
     }
-    stage('Build') {
+    stage('npm install') {
       steps {
-        sh '''
-          npm install
-          ng build --prod --aot -e deploy --bh '/gpf/' -d '/gpf/'
-          cd dist/
-          tar zcvf ../gpfjs-dist.tar.gz .
-          cd -
-        '''
+        sh "npm install"
       }
     }
+    stage('gpfjs build loop') {
+      steps {
+        script {
+            def prefixes = ['gpf', 'gpf38', 'gpfjs']
+            def directories = ['gpf', 'gpf38', 'static/gpfjs']
+            def environments = ['hg19', 'hg38', 'prod']
+            for(int i=0; i<prefixes.size(); i++) {
+                def prefix = prefixes[i]
+                def directory = directories[i]
+                def env = environments[i]
+                
+                sh "rm -rf dist/"
+                sh "ng build --prod --aot -e '${env}' --bh '/${prefix}/' -d '/${directory}/'"
+                sh "python ppindex.py"
+                sh "cd dist/ && tar zcvf ../gpfjs-dist-${prefix}.tar.gz . && cd -"
+                
+            }
+        }
+      }
+    }
+
   }
   post {
     success {
@@ -29,8 +44,14 @@ pipeline {
         message: "SUCCESSFUL: Job '${env.JOB_NAME} " +
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
-      archive 'gpfjs-dist.tar.gz'
-      fingerprint 'gpfjs-dist.tar.gz'
+      script {
+        def prefixes = ['gpf', 'gpf38', 'gpfjs']
+        for(int i=0; i<prefixes.size(); i++) {
+          def prefix = prefixes[i]
+          archive "gpfjs-dist-${prefix}.tar.gz"
+          fingerprint "gpfjs-dist-${prefix}.tar.gz"
+        }
+      }
     }
     failure {
       slackSend (
