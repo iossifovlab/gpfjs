@@ -12,6 +12,7 @@ pipeline {
     }
     stage('npm install') {
       steps {
+        sh "rm -rf node_modules package-lock.json"
         sh "npm install"
       }
     }
@@ -20,16 +21,16 @@ pipeline {
         script {
             def prefixes = ['gpf', 'gpf38', 'gpfjs']
             def directories = ['gpf', 'gpf38', 'static/gpfjs']
-            def environments = ['hg19', 'hg38', 'prod']
+            def environments = ['hg19', 'hg38', 'production']
             for(int i=0; i<prefixes.size(); i++) {
                 def prefix = prefixes[i]
                 def directory = directories[i]
                 def env = environments[i]
                 
                 sh "rm -rf dist/"
-                sh "ng build --prod --aot -e '${env}' --bh '/${prefix}/' -d '/${directory}/'"
+                sh "ng build --prod --aot --configuration '${env}' --base-href '/${prefix}/' --deploy-url '/${directory}/'"
                 sh "python ppindex.py"
-                sh "cd dist/ && tar zcvf ../gpfjs-dist-${prefix}.tar.gz . && cd -"
+                sh "cd dist/gpfjs && tar zcvf ../../gpfjs-dist-${prefix}.tar.gz . && cd -"
                 
             }
         }
