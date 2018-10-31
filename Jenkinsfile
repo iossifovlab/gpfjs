@@ -27,7 +27,7 @@ pipeline {
                 def env = environments[i]
                 
                 sh "rm -rf dist/"
-                sh "ng build --prod --aot -e '${env}' --bh '/${prefix}/' -d '/${directory}/'"
+                sh "ng build --prod --aot --configuration '${env}' --base-href '/${prefix}/' --deploy-url '/${directory}/'"
                 sh "python ppindex.py"
                 sh "cd dist/ && tar zcvf ../gpfjs-dist-${prefix}.tar.gz . && cd -"
                 
