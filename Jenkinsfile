@@ -16,6 +16,11 @@ pipeline {
         sh "npm install"
       }
     }
+    stage('run tests') {
+      steps {
+        sh "ng test -- --no-watch --no-progress --browsers=ChromeHeadlessCI"
+      }
+    }
     stage('gpfjs build loop') {
       steps {
         script {
