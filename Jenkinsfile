@@ -1,11 +1,11 @@
 pipeline {
   agent any
   stages {
-    stage('Lint') {
-      steps {
-        sh "ng lint --format junit > ts-lint-report.xml || echo \"tslint exited with \$?\""
-      }
-    }
+    // stage('Lint') {
+    //   steps {
+    //     sh "ng lint --format junit > ts-lint-report.xml || echo \"tslint exited with \$?\""
+    //   }
+    // }
     stage ('Start') {
       steps {
         slackSend (
@@ -52,11 +52,11 @@ pipeline {
     always {
       step([$class: 'CoberturaPublisher',
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
-      warnings(
-        parserConfigurations: [[parserName: 'TSLint',
-                               pattern: 'ts-lint-report.xml']],
-        excludePattern: '.*site-packages.*'
-      )
+      // warnings(
+      //   parserConfigurations: [[parserName: 'TSLint',
+      //                          pattern: 'ts-lint-report.xml']],
+      //   excludePattern: '.*site-packages.*'
+      // )
     }
     success {
       slackSend (
