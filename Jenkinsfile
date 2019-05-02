@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Lint') {
       steps {
-        sh "ng lint --format junit > ts-lint-report.xml || echo tslint exited with $?"
+        sh "ng lint --format junit > ts-lint-report.xml || echo \"tslint exited with $?\""
       }
     }
     stage ('Start') {
