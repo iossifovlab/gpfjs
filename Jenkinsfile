@@ -3,9 +3,7 @@ pipeline {
   stages {
     stage('Lint') {
       steps {
-        sh '''
-          ng lint --format junit > ts-lint-report.xml || echo "tslint exited with $?
-        '''
+        sh "ng lint --format junit > ts-lint-report.xml || echo tslint exited with $?"
       }
     }
     stage ('Start') {
@@ -52,7 +50,6 @@ pipeline {
   }
   post {
     always {
-      sh 'ls -la; ls -la ..'
       step([$class: 'CoberturaPublisher',
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
       warnings(
