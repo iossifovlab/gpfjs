@@ -45,7 +45,7 @@ pipeline {
   }
   post {
     always {
-      sh 'll; ll ..'
+      sh 'ls -la; ls -la ..'
       step([$class: 'CoberturaPublisher',
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
     }
@@ -55,14 +55,14 @@ pipeline {
         message: "SUCCESSFUL: Job '${env.JOB_NAME} " +
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
-      script {
-        def prefixes = ['gpf', 'gpf38', 'gpfjs']
-        for(int i=0; i<prefixes.size(); i++) {
-          def prefix = prefixes[i]
-          archive "gpfjs-dist-${prefix}.tar.gz"
-          fingerprint "gpfjs-dist-${prefix}.tar.gz"
-        }
-      }
+      // script {
+      //   def prefixes = ['gpf', 'gpf38', 'gpfjs']
+      //   for(int i=0; i<prefixes.size(); i++) {
+      //     def prefix = prefixes[i]
+      //     archive "gpfjs-dist-${prefix}.tar.gz"
+      //     fingerprint "gpfjs-dist-${prefix}.tar.gz"
+      //   }
+      // }
     }
     failure {
       slackSend (
