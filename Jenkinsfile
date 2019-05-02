@@ -53,7 +53,7 @@ pipeline {
       step([$class: 'CoberturaPublisher',
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
       warnings(
-        parserConfigurations: [[parserName: 'TsLint',
+        parserConfigurations: [[parserName: 'TSLint',
                                pattern: 'ts-lint-report.xml']],
         excludePattern: '.*site-packages.*'
       )
