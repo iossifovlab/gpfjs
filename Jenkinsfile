@@ -45,10 +45,7 @@ pipeline {
   }
   post {
     always {
-      script {
-        ll
-        ll ..
-      }
+      sh 'll; ll ..'
       step([$class: 'CoberturaPublisher',
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
     }
