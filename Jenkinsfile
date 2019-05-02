@@ -44,6 +44,10 @@ pipeline {
 
   }
   post {
+    always {
+      step([$class: 'CoberturaPublisher',
+           coberturaReportFile: 'coverage/cobertura-coverage.xml'])
+    }
     success {
       slackSend (
         color: '#00FF00',
