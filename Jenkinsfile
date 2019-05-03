@@ -57,7 +57,7 @@ pipeline {
       step([
         $class: 'WarningsPublisher',
         parserConfigurations: [
-          [parserName: 'TSLint', pattern: 'ts-lint.report']
+          [parserName: 'JSLint', pattern: 'ts-lint.report']
         ],
         usePreviousBuildAsReference: true
       ])
