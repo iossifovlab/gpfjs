@@ -52,10 +52,11 @@ pipeline {
     always {
       step([$class: 'CoberturaPublisher',
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
-      warnings(
-        parserConfigurations: [[parserName: 'JSLint',
-                               pattern: 'ts-lint.report']]
-      )
+      step([
+        $class: 'WarningsPublisher',
+        parserConfigurations: [[parserName: 'TSLint', pattern: 'ts-lint.report']],
+          usePreviousBuildAsReference: true
+      ])
     }
     success {
       slackSend (
