@@ -18,7 +18,7 @@ pipeline {
     }
     stage('Lint') {
       steps {
-        sh "ng lint > ts-lint.report || echo \"tslint exited with \$?\""
+        sh "ng lint --format checkstyle > ts-lint.report || echo \"tslint exited with \$?\""
       }
     }
     stage('Test') {
@@ -50,12 +50,16 @@ pipeline {
   }
   post {
     always {
-      step([$class: 'CoberturaPublisher',
-           coberturaReportFile: 'coverage/cobertura-coverage.xml'])
+      step([
+        $class: 'CoberturaPublisher',
+        coberturaReportFile: 'coverage/cobertura-coverage.xml'
+      ])
       step([
         $class: 'WarningsPublisher',
-        parserConfigurations: [[parserName: 'TSLint', pattern: 'ts-lint.report']],
-          usePreviousBuildAsReference: true
+        parserConfigurations: [
+          [parserName: 'TSLint', pattern: 'ts-lint.report']
+        ],
+        usePreviousBuildAsReference: true
       ])
     }
     success {
