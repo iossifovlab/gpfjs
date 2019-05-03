@@ -54,13 +54,13 @@ pipeline {
         $class: 'CoberturaPublisher',
         coberturaReportFile: 'coverage/cobertura-coverage.xml'
       ])
-      step([
-        $class: 'WarningsPublisher',
+      warnings(
         parserConfigurations: [
           [parserName: 'JSLint', pattern: 'ts-lint.report']
         ],
-        usePreviousBuildAsReference: true
-      ])
+        usePreviousBuildAsReference: true,
+        unstableTotalAll: '5'
+        )
     }
     success {
       slackSend (
