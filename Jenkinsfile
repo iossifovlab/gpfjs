@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Lint') {
       steps {
-        sh "ng lint --format junit > ts-lint-report.xml || echo \"tslint exited with \$?\""
+        sh "ng lint > ts-lint.report || echo \"tslint exited with \$?\""
       }
     }
     stage ('Start') {
@@ -54,8 +54,7 @@ pipeline {
            coberturaReportFile: 'coverage/cobertura-coverage.xml'])
       warnings(
         parserConfigurations: [[parserName: 'TSLint',
-                               pattern: 'ts-lint-report.xml']],
-        excludePattern: '.*site-packages.*'
+                               pattern: 'ts-lint.report']]
       )
     }
     success {
