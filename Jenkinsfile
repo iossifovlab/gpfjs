@@ -23,7 +23,7 @@ pipeline {
           sed -i '$ d' ts-lint-report.xml
           sed -i '$ d' ts-lint-report.xml
           echo "\n" >> ts-lint-report.xml
-        ''''
+        '''
       }
     }
     stage('Test') {
