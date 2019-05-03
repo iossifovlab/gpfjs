@@ -18,7 +18,7 @@ pipeline {
     }
     stage('Lint') {
       steps {
-        sh "ng lint --format checkstyle > ts-lint.report || echo \"tslint exited with \$?\""
+        sh "ng lint --format checkstyle > ts-lint-report.xml || echo \"tslint exited with \$?\""
       }
     }
     stage('Test') {
@@ -56,7 +56,7 @@ pipeline {
       ])
       warnings(
         parserConfigurations: [
-          [parserName: 'JSLint', pattern: 'ts-lint.report']
+          [parserName: 'JSLint', pattern: 'ts-lint-report.xml']
         ],
         usePreviousBuildAsReference: true,
         unstableTotalAll: '5'
