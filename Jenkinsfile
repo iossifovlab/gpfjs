@@ -21,8 +21,6 @@ pipeline {
         sh '''
           ng lint --format checkstyle > ts-lint-report.xml || echo \"tslint exited with \$?\"
           sed -i '$ d' ts-lint-report.xml
-          sed -i '$ d' ts-lint-report.xml
-          echo "\n" >> ts-lint-report.xml
         '''
       }
     }
