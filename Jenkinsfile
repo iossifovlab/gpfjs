@@ -10,18 +10,26 @@ pipeline {
         )
       }
     }
-    stage('npm install') {
+    stage('Setup') {
       steps {
         sh "rm -rf node_modules package-lock.json"
         sh "npm install"
       }
     }
-    stage('run tests') {
+    stage('Lint') {
       steps {
-        sh "ng test -- --no-watch --no-progress --browsers=ChromeHeadlessCI"
+        sh '''
+          ng lint --format checkstyle > ts-lint-report.xml || echo \"tslint exited with \$?\"
+          sed -i '$ d' ts-lint-report.xml
+        '''
       }
     }
-    stage('gpfjs build loop') {
+    stage('Test') {
+      steps {
+        sh "ng test -- --no-watch --no-progress --code-coverage --browsers=ChromeHeadlessCI"
+      }
+    }
+    stage('Build') {
       steps {
         script {
             def prefixes = ['gpf', 'gpf38', 'gpfjs']
@@ -31,19 +39,31 @@ pipeline {
                 def prefix = prefixes[i]
                 def directory = directories[i]
                 def env = environments[i]
-                
+
                 sh "rm -rf dist/"
                 sh "ng build --prod --aot --configuration '${env}' --base-href '/${prefix}/' --deploy-url '/${directory}/'"
                 sh "python ppindex.py"
                 sh "cd dist/gpfjs && tar zcvf ../../gpfjs-dist-${prefix}.tar.gz . && cd -"
-                
+
             }
         }
       }
     }
-
   }
   post {
+    always {
+      junit 'coverage/junit-report.xml'
+      step([
+        $class: 'CoberturaPublisher',
+        coberturaReportFile: 'coverage/cobertura-coverage.xml'
+      ])
+      warnings(
+        parserConfigurations: [
+          [parserName: 'JSLint', pattern: 'ts-lint-report.xml']
+        ],
+        usePreviousBuildAsReference: true,
+      )
+    }
     success {
       slackSend (
         color: '#00FF00',
