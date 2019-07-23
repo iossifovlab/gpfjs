@@ -19,8 +19,8 @@ pipeline {
     stage('gpfjs build loop') {
       steps {
         script {
-            def prefixes = ['gpf', 'gpf38', 'gpfjs']
-            def directories = ['gpf', 'gpf38', 'static/gpfjs']
+            def prefixes = ['gpf19', 'gpf38', 'gpfjs']
+            def directories = ['gpf19', 'gpf38', 'static/gpfjs']
             def environments = ['hg19', 'hg38', 'production']
             for(int i=0; i<prefixes.size(); i++) {
                 def prefix = prefixes[i]
@@ -46,7 +46,7 @@ pipeline {
                  "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
       )
       script {
-        def prefixes = ['gpf', 'gpf38', 'gpfjs']
+        def prefixes = ['gpf19', 'gpf38', 'gpfjs']
         for(int i=0; i<prefixes.size(); i++) {
           def prefix = prefixes[i]
           archive "gpfjs-dist-${prefix}.tar.gz"
