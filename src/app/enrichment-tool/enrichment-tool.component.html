@@ -1,3 +1,6 @@
+<div *ngIf="selectedDataset$ | async as dataset">
+  <div *ngIf="dataset.accessRights">
+
 <div class="container">
   <gpf-genes-block [showAllTab]="false"></gpf-genes-block>
   <gpf-enrichment-models-block></gpf-enrichment-models-block>
@@ -7,4 +10,7 @@
     <gpf-save-query-button queryType="enrichment"></gpf-save-query-button>
   </div>
   <gpf-enrichment-table [enrichmentResults]="enrichmentResults"></gpf-enrichment-table>
+</div>
+
+</div>
 </div>

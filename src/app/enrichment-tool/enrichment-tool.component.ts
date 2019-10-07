@@ -5,6 +5,8 @@ import { EnrichmentQueryService } from '../enrichment-query/enrichment-query.ser
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { FullscreenLoadingService } from '../fullscreen-loading/fullscreen-loading.service';
 import { Observable } from 'rxjs';
+import { Dataset } from 'app/datasets/datasets';
+import { DatasetsService } from 'app/datasets/datasets.service';
 
 @Component({
   selector: 'gpf-enrichment-tool',
@@ -18,11 +20,13 @@ import { Observable } from 'rxjs';
 export class EnrichmentToolComponent extends QueryStateCollector implements OnInit {
   enrichmentResults: EnrichmentResults;
   private selectedDatasetId: string;
+  selectedDataset$: Observable<Dataset>;
 
   constructor(
     private enrichmentQueryService: EnrichmentQueryService,
     private loadingService: FullscreenLoadingService,
     private route: ActivatedRoute,
+    private datasetsService: DatasetsService,
   ) {
     super();
   }
@@ -33,6 +37,7 @@ export class EnrichmentToolComponent extends QueryStateCollector implements OnIn
         this.selectedDatasetId = params['dataset'];
       }
     );
+    this.selectedDataset$ = this.datasetsService.getSelectedDataset();
   }
 
   getCurrentState() {

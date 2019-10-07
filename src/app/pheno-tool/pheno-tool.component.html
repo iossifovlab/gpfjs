@@ -1,3 +1,5 @@
+<div *ngIf="selectedDataset?.accessRights">
+
 <div class="container">
   <gpf-genes-block [showAllTab]="true"></gpf-genes-block>
   <gpf-pheno-tool-measure></gpf-pheno-tool-measure>
@@ -30,4 +32,6 @@
 
   <gpf-pheno-tool-results-chart *ngIf="phenoToolResults" [phenoToolResults]="phenoToolResults">
   </gpf-pheno-tool-results-chart>
+</div>
+
 </div>
