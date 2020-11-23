@@ -8,7 +8,10 @@ pipeline {
           message: "STARTED: Job '${env.JOB_NAME} " +
             "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
         )
-        zulipSend message: 'Started build #${BUILD_NUMBER} of project ${JOB_NAME}...'
+        zulipSend(
+          message: "Started build #${BUILD_NUMBER} of project ${JOB_NAME} (${env.BUILD_URL})",
+          topic: ${env.JOB_NAME})
+
       }
     }
     stage('Setup') {
@@ -58,7 +61,9 @@ pipeline {
         $class: 'CoberturaPublisher',
         coberturaReportFile: 'coverage/cobertura-coverage.xml'
       ])
-      zulipNotification()      
+      zulipNotification(
+        topic: ${env.JOB_NAME}
+      )      
       // warnings(
       //   parserConfigurations: [
       //     [parserName: 'JSLint', pattern: 'ts-lint-report.xml']
