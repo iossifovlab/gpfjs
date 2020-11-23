@@ -33,26 +33,26 @@ pipeline {
         sh "ng test -- --no-watch --no-progress --code-coverage --browsers=ChromeHeadlessCI"
       }
     }
-    stage('Build') {
-      steps {
-        script {
-            def prefixes = ['gpf19', 'gpf38', 'gpfjs']
-            def directories = ['gpf19', 'gpf38', 'static/gpfjs']
-            def environments = ['hg19', 'hg38', 'production']
-            for(int i=0; i<prefixes.size(); i++) {
-                def prefix = prefixes[i]
-                def directory = directories[i]
-                def env = environments[i]
+    // stage('Build') {
+    //   steps {
+    //     script {
+    //         def prefixes = ['gpf19', 'gpf38', 'gpfjs']
+    //         def directories = ['gpf19', 'gpf38', 'static/gpfjs']
+    //         def environments = ['hg19', 'hg38', 'production']
+    //         for(int i=0; i<prefixes.size(); i++) {
+    //             def prefix = prefixes[i]
+    //             def directory = directories[i]
+    //             def env = environments[i]
 
-                sh "rm -rf dist/"
-                sh "ng build --prod --aot --configuration '${env}' --base-href '/${prefix}/' --deploy-url '/${directory}/'"
-                sh "python ppindex.py"
-                sh "cd dist/gpfjs && tar zcvf ../../gpfjs-dist-${prefix}.tar.gz . && cd -"
+    //             sh "rm -rf dist/"
+    //             sh "ng build --prod --aot --configuration '${env}' --base-href '/${prefix}/' --deploy-url '/${directory}/'"
+    //             sh "python ppindex.py"
+    //             sh "cd dist/gpfjs && tar zcvf ../../gpfjs-dist-${prefix}.tar.gz . && cd -"
 
-            }
-        }
-      }
-    }
+    //         }
+    //     }
+    //   }
+    // }
   }
   post {
     always {
