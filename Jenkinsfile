@@ -9,7 +9,7 @@ pipeline {
             "[${env.BUILD_NUMBER}]' (${env.BUILD_URL})"
         )
         zulipSend(
-          message: "Started build #${BUILD_NUMBER} of project ${JOB_NAME} (${env.BUILD_URL})",
+          message: "Started build #${env.BUILD_NUMBER} of project ${env.JOB_NAME} (${env.BUILD_URL})",
           topic: ${env.JOB_NAME})
 
       }
