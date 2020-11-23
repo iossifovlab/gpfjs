@@ -10,7 +10,7 @@ pipeline {
         )
         zulipSend(
           message: "Started build #${env.BUILD_NUMBER} of project ${env.JOB_NAME} (${env.BUILD_URL})",
-          topic: ${env.JOB_NAME})
+          topic: "${env.JOB_NAME}")
 
       }
     }
@@ -62,7 +62,7 @@ pipeline {
         coberturaReportFile: 'coverage/cobertura-coverage.xml'
       ])
       zulipNotification(
-        topic: ${env.JOB_NAME}
+        topic: "${env.JOB_NAME}"
       )      
       // warnings(
       //   parserConfigurations: [
