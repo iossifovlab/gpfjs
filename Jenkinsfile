@@ -57,12 +57,12 @@ pipeline {
         $class: 'CoberturaPublisher',
         coberturaReportFile: 'coverage/cobertura-coverage.xml'
       ])
-      warnings(
-        parserConfigurations: [
-          [parserName: 'JSLint', pattern: 'ts-lint-report.xml']
-        ],
-        usePreviousBuildAsReference: true,
-      )
+      // warnings(
+      //   parserConfigurations: [
+      //     [parserName: 'JSLint', pattern: 'ts-lint-report.xml']
+      //   ],
+      //   usePreviousBuildAsReference: true,
+      // )
     }
     success {
       slackSend (
