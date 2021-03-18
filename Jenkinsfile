@@ -40,6 +40,16 @@ pipeline {
         topic: "${env.JOB_NAME}"
       )      
     }
-    
+
+    success {
+
+      script {
+          def job_result = build job: 'seqpipe/seqpipe-gpf-containers/master', propagate: true, wait: false, parameters: [
+              string(name: 'GPF_BRANCH', value: "master"),
+              booleanParam(name: "PUBLISH", value: false)
+          ]
+      }
+    }
+
   }
 }
