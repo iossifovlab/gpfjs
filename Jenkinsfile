@@ -11,7 +11,7 @@ pipeline {
     }
     stage('Copy artifacts') {
       steps {
-          copyArtifacts filter: 'seqpipe-containers.build-env.sh', target: 'build-env/', fingerprintArtifacts: true, projectName: 'seqpipe/seqpipe-containers/build-scripts'
+          copyArtifacts( filter: 'seqpipe-containers.build-env.sh', target: 'build-env/', fingerprintArtifacts: true, projectName: 'seqpipe/seqpipe-containers/build-scripts')
       }
     }
 
