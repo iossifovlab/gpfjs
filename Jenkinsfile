@@ -23,6 +23,7 @@ pipeline {
         }
       }
     }
+  }
   post {
     always {
       junit 'coverage/junit-report.xml'
@@ -34,7 +35,6 @@ pipeline {
         topic: "${env.JOB_NAME}"
       )
     }
-
 //     success {
 //
 //       script {
