@@ -9,26 +9,14 @@ pipeline {
 
       }
     }
-    stage('Setup') {
+    stage('Generate stages') {
       steps {
-        sh "rm -rf node_modules package-lock.json"
-        sh "npm install"
+        sh './build.sh Jenkinsfile.generated-stages'
+        script {
+          load('Jenkinsfile.generated-stages')
+        }
       }
     }
-    stage('Lint') {
-      steps {
-        sh '''
-          ng lint --format checkstyle > ts-lint-report.xml || echo \"tslint exited with \$?\"
-          sed -i '$ d' ts-lint-report.xml
-        '''
-      }
-    }
-    stage('Test') {
-      steps {
-        sh "ng test -- --no-watch --no-progress --code-coverage --browsers=ChromeHeadlessCI"
-      }
-    }
-  }
   post {
     always {
       junit 'coverage/junit-report.xml'
@@ -38,18 +26,17 @@ pipeline {
       ])
       zulipNotification(
         topic: "${env.JOB_NAME}"
-      )      
+      )
     }
 
-    success {
-
-      script {
-          def job_result = build job: 'seqpipe/seqpipe-gpf-containers/master', propagate: true, wait: false, parameters: [
-              string(name: 'GPF_BRANCH', value: "master"),
-              booleanParam(name: "PUBLISH", value: false)
-          ]
-      }
-    }
-
+//     success {
+//
+//       script {
+//           def job_result = build job: 'seqpipe/seqpipe-gpf-containers/master', propagate: true, wait: false, parameters: [
+//               string(name: 'GPF_BRANCH', value: "master"),
+//               booleanParam(name: "PUBLISH", value: false)
+//           ]
+//       }
+//     }
   }
 }
