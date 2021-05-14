@@ -2,7 +2,10 @@ pipeline {
   agent {
     label 'dory'
   }
-
+  environment {
+      BUILD_SCRIPTS_BUILD_DOCKER_REGISTRY_USERNAME = credentials('jenkins-registry.seqpipe.org.user')
+      BUILD_SCRIPTS_BUILD_DOCKER_REGISTRY_PASSWORD_FILE = credentials('jenkins-registry.seqpipe.org.passwd')
+  }
   stages {
     stage ('Start') {
       steps {
