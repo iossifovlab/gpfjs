@@ -1,5 +1,5 @@
 def upstream_jobs = [
-  "seqpipe/seqpipe-containers/${env.BRANCH_NAME}",
+  "seqpipe/seqpipe-containers/${env.BRANCH_NAME}"
 ]
 def upstream_jobs_symlinks = [: ]
 upstream_jobs.each() {
