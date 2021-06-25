@@ -124,7 +124,7 @@ pipeline {
         equals expected: "false", actual: SKIP
       }
       steps {
-        sh './build.sh preset:slow stage:Jenkinsfile.generated-stages'
+        sh "./build.sh preset:slow build_no:${env.BUILD_NUMBER} stage:Jenkinsfile.generated-stages"
         script {
           load('Jenkinsfile.generated-stages')
         }
