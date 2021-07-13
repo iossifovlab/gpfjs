@@ -15,7 +15,7 @@ pipeline {
     }
     stage('Generate stages') {
       steps {
-        sh "./build.sh preset:slow build_no:${env.BUILD_NUMBER} stage:Jenkinsfile.generated-stages"
+        sh "./build.sh preset:slow build_no:${env.BUILD_NUMBER} generate_jenkins_init:yes"
         script {
           load('Jenkinsfile.generated-stages')
         }
