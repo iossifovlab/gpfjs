@@ -27,6 +27,13 @@ pipeline {
   }
   post {
     always {
+      junit 'coverage/junit-report.xml'
+
+      step([
+        $class: 'CoberturaPublisher',
+        coberturaReportFile: 'coverage/cobertura-coverage.xml'
+      ])
+
       zulipNotification(
         topic: "${env.JOB_NAME}"
       )
