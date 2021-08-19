@@ -29,10 +29,7 @@ pipeline {
     always {
       junit 'coverage/junit-report.xml'
 
-      step([
-        $class: 'CoberturaPublisher',
-        coberturaReportFile: 'coverage/cobertura-coverage.xml'
-      ])
+      cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
 
       zulipNotification(
         topic: "${env.JOB_NAME}"
