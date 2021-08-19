@@ -29,13 +29,6 @@ pipeline {
     always {
       junit 'coverage/junit-report.xml'
 
-      recordIssues(
-        enabledForFailure: true, aggregatingResults: false,
-        tools: [
-          junitParser(pattern: 'coverage/junit-report.xml', reportEncoding: 'UTF-8', id: 'junit', name: 'Test results'),
-        ]
-      )
-
       step([
         $class: 'CoberturaPublisher',
         coberturaReportFile: 'coverage/cobertura-coverage.xml'
