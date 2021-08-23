@@ -6,6 +6,7 @@ pipeline {
   environment {
     BUILD_SCRIPTS_BUILD_DOCKER_REGISTRY_USERNAME = credentials('jenkins-registry.seqpipe.org.user')
     BUILD_SCRIPTS_BUILD_DOCKER_REGISTRY_PASSWORD_FILE = credentials('jenkins-registry.seqpipe.org.passwd')
+    TRIGGERS='[cron("0 2 * * *")]'
   }
 
   stages {
@@ -29,17 +30,7 @@ pipeline {
     always {
       junit 'coverage/junit-report.xml'
 
-      recordIssues(
-        enabledForFailure: true, aggregatingResults: false,
-        tools: [
-          junitParser(pattern: 'coverage/junit-report.xml', reportEncoding: 'UTF-8', id: 'junit', name: 'Test results'),
-        ]
-      )
-
-      step([
-        $class: 'CoberturaPublisher',
-        coberturaReportFile: 'coverage/cobertura-coverage.xml'
-      ])
+      cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
 
       zulipNotification(
         topic: "${env.JOB_NAME}"
