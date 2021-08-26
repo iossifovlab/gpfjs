@@ -27,13 +27,13 @@ pipeline {
   }
   post {
     always {
-      junit 'coverage/junit-report.xml'
-
-      cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
-
       zulipNotification(
         topic: "${env.JOB_NAME}"
       )
+
+      junit 'coverage/junit-report.xml'
+
+      cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
     }
   }
 }
