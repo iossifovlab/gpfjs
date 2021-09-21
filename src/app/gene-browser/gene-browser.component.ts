@@ -1,78 +1,57 @@
-import { AfterViewInit, Component, HostListener, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
+import { Location } from '@angular/common'; 
 import { Store } from '@ngxs/store';
-import { GeneService } from 'app/gene-view/gene.service';
-import { Gene, GeneViewSummaryAllele, GeneViewSummaryAllelesArray, DomainRange } from 'app/gene-view/gene';
+import { GeneService } from 'app/gene-browser/gene.service';
+import { Gene } from 'app/gene-browser/gene';
+import { SummaryAllelesArray, SummaryAllelesFilter, codingEffectTypes,
+  affectedStatusValues, effectTypeValues, variantTypeValues } from 'app/gene-browser/summary-variants';
 import { GenotypePreviewVariantsArray } from 'app/genotype-preview-model/genotype-preview';
 import { QueryService } from 'app/query/query.service';
-// tslint:disable-next-line:import-blacklist
-import { Observable, of, combineLatest } from 'rxjs';
-import { switchMap, first } from 'rxjs/operators';
+import { first, take, debounceTime } from 'rxjs/operators';
+import { Subject, Subscription } from 'rxjs';
 import { Dataset } from 'app/datasets/datasets';
 import { DatasetsService } from 'app/datasets/datasets.service';
 import { FullscreenLoadingService } from 'app/fullscreen-loading/fullscreen-loading.service';
 import { GenePlotComponent } from 'app/gene-plot/gene-plot.component';
 import { ConfigService } from 'app/config/config.service';
-import { CODING, CNV, LGDS } from 'app/effecttypes/effecttypes';
+import { clone } from 'lodash';
+import * as d3 from 'd3';
+import * as draw from 'app/utils/svg-drawing';
+import { SetGeneSymbols } from 'app/gene-symbols/gene-symbols.state';
 
 @Component({
   selector: 'gpf-gene-browser',
   templateUrl: './gene-browser.component.html',
   styleUrls: ['./gene-browser.component.css'],
 })
-export class GeneBrowserComponent implements OnInit, AfterViewInit {
+export class GeneBrowserComponent implements OnInit, OnDestroy {
   @ViewChild(GenePlotComponent) private genePlotComponent: GenePlotComponent;
   private selectedGene: Gene;
   private geneSymbol = '';
   private maxFamilyVariants = 1000;
-  private genotypePreviewVariantsArray: GenotypePreviewVariantsArray;
-  private summaryVariantsArray: GeneViewSummaryAllelesArray;
-  private summaryVariantsArrayFiltered: GeneViewSummaryAllelesArray;
   public selectedDataset: Dataset;
   private selectedDatasetId: string;
-  private loadingFinished: boolean;
+  private showResults: boolean;
   private familyLoadingFinished: boolean;
   private showError = false;
   private geneBrowserConfig;
-  private enableCodingOnly = true;
+  private legendDrawn = false;
+  private subscriptions: Subscription[] = [];
 
-  private showDenovo = true;
-  private showTransmitted = true;
-  private selectedAffectedStatus: Set<string>;
-  private selectedEffectTypes: Set<string>;
-  private selectedVariantTypes: Set<string>;
+  public readonly affectedStatusValues = affectedStatusValues;
+  public readonly effectTypeValues = effectTypeValues;
+  public readonly variantTypeValues = variantTypeValues;
+
+  private genotypePreviewVariantsArray: GenotypePreviewVariantsArray;
+  private summaryVariantsArray: SummaryAllelesArray;
+  private summaryVariantsArrayFiltered: SummaryAllelesArray;
+  public summaryVariantsFilter: SummaryAllelesFilter = new SummaryAllelesFilter();
+
+  private variantUpdate$: Subject<void> = new Subject();
+
   private selectedFrequencies: [number, number] = [0, 0];
   private selectedRegion: [number, number] = [0, 0];
-  private collapsedTranscript;
-
-  // TODO: Use effects from effecttypes.ts
-  private readonly codingEffectTypes = [
-    // LGDs
-    'lgds',
-    // CODING
-    // ...CODING,
-    'nonsense', 'frame-shift', 'splice-site', 'no-frame-shift-newStop',
-    'missense', 'synonymous', 'noStart', 'noEnd', 'no-frame-shift',
-    // ???
-    'CDS',
-    // CNV
-    // ...CNV,
-    'CNV+', 'CNV-'
-  ];
-  private readonly otherEffectTypes = [
-    // ???
-    'noStart', 'noEnd', 'no-frame-shift', 'non-coding', 'intron', 'intergenic',
-    // ???
-    '3\'UTR', '3\'UTR-intron', '5\'UTR', '5\'UTR-intron',
-    // ???
-    'CDS',
-    // CNV
-    'CNV+', 'CNV-'
-  ];
-  private readonly lgds = ['nonsense', 'splice-site', 'frame-shift', 'no-frame-shift-new-stop'];
-  private readonly affectedStatusValues = ['Affected only', 'Unaffected only', 'Affected and unaffected'];
-  private readonly effectTypeValues = ['lgds', 'missense', 'synonymous', 'cnv+', 'cnv-', 'other'];
-  private readonly variantTypeValues = ['sub', 'ins', 'del', 'cnv+', 'cnv-'];
 
   @HostListener('document:keydown.enter', ['$event'])
   private onEnterPress($event) {
@@ -81,52 +60,107 @@ export class GeneBrowserComponent implements OnInit, AfterViewInit {
     }
   }
 
+  @ViewChild('filters', { static: false })
+  public set filters(element) {
+    this.drawDenovoIcons();
+    this.drawTransmittedIcons();
+    this.drawEffectTypesIcons();
+  }
+
   constructor(
+    readonly configService: ConfigService,
+    private route: ActivatedRoute,
+    private location: Location,
     private store: Store,
-    public queryService: QueryService,
+    private queryService: QueryService,
     private geneService: GeneService,
     private datasetsService: DatasetsService,
-    private route: ActivatedRoute,
-    readonly configService: ConfigService,
     private loadingService: FullscreenLoadingService,
-  ) {
-    this.selectedAffectedStatus = new Set(this.affectedStatusValues);
-    this.selectedEffectTypes = new Set(this.effectTypeValues);
-    this.selectedVariantTypes = new Set(this.variantTypeValues);
-  }
+  ) { }
 
   public ngOnInit(): void {
     this.selectedDataset = this.datasetsService.getSelectedDataset();
     if (this.selectedDataset) {
       this.geneBrowserConfig = this.selectedDataset.geneBrowser;
     }
-    this.datasetsService.getDatasetsLoadedObservable()
-    .subscribe(datasetsLoaded => {
-      this.selectedDataset = this.datasetsService.getSelectedDataset();
-      if (this.selectedDataset) {
-        this.geneBrowserConfig = this.selectedDataset.geneBrowser;
-      }
-    });
 
-    this.route.parent.params.subscribe(
-      (params: Params) => {
-        this.selectedDatasetId = params['dataset'];
-      }
+    this.subscriptions.push(
+      this.datasetsService.getDatasetsLoadedObservable().pipe(take(1)).subscribe(() => {
+        this.selectedDataset = this.datasetsService.getSelectedDataset();
+        if (this.selectedDataset) {
+          this.geneBrowserConfig = this.selectedDataset.geneBrowser;
+          if (this.route.snapshot.params.gene && this.selectedDataset.accessRights) {
+            this.store.dispatch(new SetGeneSymbols([this.route.snapshot.params.gene.toUpperCase()]));
+            this.submitGeneRequest(this.route.snapshot.params.gene);
+          }
+        }
+      }),
+      this.queryService.streamingFinishedSubject.subscribe(() => {
+        this.familyLoadingFinished = true;
+      }),
+      this.queryService.summaryStreamingFinishedSubject.subscribe(async() => {
+        this.showResults = true;
+        this.loadingService.setLoadingStop();
+      }),
+      this.route.parent.params.subscribe(
+        (params: Params) => {
+          this.selectedDatasetId = params['dataset'];
+        }
+      ),
+      this.store.select(state => state.geneSymbolsState).subscribe(state => {
+        if (state.geneSymbols.length && state.geneSymbols[0]) {
+          this.geneSymbol = state.geneSymbols[0];
+        } else {
+          this.location.go(`datasets/${this.selectedDatasetId}/gene-browser`);
+        }
+      }),
+      this.variantUpdate$.pipe(debounceTime(750)).subscribe(() => this.updateShownTablePreviewVariantsArray())
     );
-
-    this.store.select(state => state.geneSymbolsState).subscribe(state => {
-      if (state.geneSymbols.length) {
-        this.geneSymbol = state.geneSymbols[0];
-      }
-    });
   }
 
-  public ngAfterViewInit(): void {
-    this.datasetsService.getDataset(this.selectedDatasetId).subscribe(dataset => {
-      if (dataset.accessRights && this.route.snapshot.params.gene) {
-        this.submitGeneRequest(this.route.snapshot.params.gene);
-      }
-    });
+  public ngOnDestroy(): void {
+    this.subscriptions.map(subscription => subscription.unsubscribe());
+  }
+
+  private async submitGeneRequest(geneSymbol?: string) {
+    this.showError = false;
+    if (geneSymbol) {
+      this.geneSymbol = geneSymbol.toUpperCase().trim();
+    }
+    if (!this.geneSymbol) {
+      return;
+    }
+    try {
+      this.selectedGene = await this.geneService.getGene(
+        this.geneSymbol.toUpperCase().trim()
+      ).pipe(first()).toPromise();
+    } catch (error) {
+      console.error(error);
+      this.showError = true;
+      return;
+    }
+    this.location.go(`datasets/${this.selectedDatasetId}/gene-browser/${this.geneSymbol.toUpperCase()}`);
+    this.showResults = false;
+    this.loadingService.setLoadingStart();
+    this.genotypePreviewVariantsArray = null;
+
+    this.summaryVariantsArray = this.queryService.getSummaryVariants(this.requestParamsSummary);
+    this.summaryVariantsArrayFiltered = clone(this.summaryVariantsArray);
+
+    this.summaryVariantsFilter.selectedRegion = [
+      this.selectedGene.collapsedTranscript.start,
+      this.selectedGene.collapsedTranscript.stop
+    ];
+    this.summaryVariantsFilter.selectedFrequencies = [
+      0, this.geneBrowserConfig.domainMax
+    ];
+
+    this.updateShownTablePreviewVariantsArray();
+
+    if (!this.summaryVariantsFilter.codingOnly) {
+      await this.waitForGenePlotComponent();
+      this.genePlotComponent.toggleCondenseIntrons();
+    }
   }
 
   private async waitForGenePlotComponent() {
@@ -140,291 +174,150 @@ export class GeneBrowserComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private updateShownTablePreviewVariantsArray() {
-    this.familyLoadingFinished = false;
-    const requestParams = {
-      ...this.transformFamilyVariantsQueryParameters(),
-      'maxVariantsCount': this.maxFamilyVariants,
+  private get requestParams(): object {
+    return {
+      ...this.summaryVariantsFilter.queryParams,
+      'geneSymbols': [this.selectedGene.geneSymbol],
+      'datasetId': this.selectedDatasetId,
+      'regions': this.selectedGene.getRegionString(...this.summaryVariantsFilter.selectedRegion),
       'summaryVariantIds': this.summaryVariantsArrayFiltered.summaryAlleleIds.reduce(
         (a, b) => a.concat(b), []
       ),
-      'uniqueFamilyVariants': false,
       'genomicScores': [{
         'metric': this.geneBrowserConfig.frequencyColumn,
-        'rangeStart': this.selectedFrequencies[0] > 0 ? this.selectedFrequencies[0] : null,
-        'rangeEnd': this.selectedFrequencies[1],
-      }]
+        'rangeStart': this.summaryVariantsFilter.minFreq,
+        'rangeEnd': this.summaryVariantsFilter.maxFreq,
+      }],
+    };
+  }
+
+  private get requestParamsSummary(): object {
+    const requestParams = {
+      'datasetId': this.selectedDatasetId,
+      'geneSymbols': [this.geneSymbol.toUpperCase().trim()],
+      'maxVariantsCount': 10000,
+      'inheritanceTypeFilter': ['denovo', 'mendelian', 'omission', 'missing'],
+    };
+    if (this.summaryVariantsFilter.codingOnly) {
+      requestParams['effectTypes'] = codingEffectTypes;
+    }
+    return requestParams;
+  }
+
+  private updateShownTablePreviewVariantsArray() {
+    this.familyLoadingFinished = false;
+    const requestParams = {
+      ...this.requestParams,
+      'maxVariantsCount': this.maxFamilyVariants,
+      'uniqueFamilyVariants': false,
     };
     this.genotypePreviewVariantsArray = this.queryService.getGenotypePreviewVariantsByFilter(
       this.selectedDataset, requestParams
     );
   }
 
-  private transformFamilyVariantsQueryParameters() {
-    const inheritanceFilters = [];
-    if (this.showDenovo) {
-      inheritanceFilters.push('denovo');
-    }
-    if (this.showTransmitted) {
-      inheritanceFilters.push('mendelian', 'omission', 'missing');
-      // inheritanceFilters.push('unknown');
-    }
-
-    let effects: string[] = Array.from(this.selectedEffectTypes);
-    if (effects.includes('other')) {
-      effects = effects.filter(ef => ef !== 'other');
-      effects = effects.concat(this.otherEffectTypes);
-      if (this.enableCodingOnly) {
-        effects = effects.filter(et => this.codingEffectTypes.indexOf(et) >= 0);
-      }
-    }
-    const affectedStatus = new Set(this.selectedAffectedStatus);
-    if (affectedStatus.has('Affected and unaffected')) {
-      affectedStatus.add('Affected only');
-      affectedStatus.add('Unaffected only');
-    }
-
-    const params: object = {
-      'effectTypes': effects,
-      'inheritanceTypeFilter': inheritanceFilters,
-      'affectedStatus': Array.from(affectedStatus.values()),
-      'variantType': this.selectedVariantTypes,
-      'geneSymbols': [this.selectedGene.gene],
-      'datasetId': this.selectedDatasetId,
-      'regions': this.genePlotComponent.getRegionString(...this.selectedRegion),
-    };
-    return params;
-  }
-
-  private async submitGeneRequest(geneSymbol?: string) {
-    this.showError = false;
-
-    this.loadingFinished = false;
-    this.loadingService.setLoadingStart();
-    this.genotypePreviewVariantsArray = null;
-
-    // COLLECT GENE
-    if (geneSymbol) {
-      this.geneSymbol = geneSymbol.toUpperCase().trim();
-    }
-    try {
-      this.selectedGene = await this.geneService.getGene(
-        this.geneSymbol.toUpperCase().trim()
-      ).pipe(first()).toPromise();
-    } catch(error) {
-      console.error(error);
-      this.showError = true;
-    }
-
-    if (this.selectedGene === undefined) {
-      return;
-    }
-
-    const collapsedTranscript = this.selectedGene.collapsedTranscript();
-    this.selectedRegion = [collapsedTranscript.start, collapsedTranscript.stop];
-    this.selectedFrequencies = [0, this.geneBrowserConfig.domainMax];
-
-    this.queryService.summaryStreamingFinishedSubject.subscribe(async() => {
-      this.loadingFinished = true;
-      await this.waitForGenePlotComponent();
-      this.loadingService.setLoadingStop();
-      this.updateShownTablePreviewVariantsArray();
-    });
-
-    this.queryService.streamingFinishedSubject.subscribe(() => {
-      this.familyLoadingFinished = true;
-    });
-
-    const requestParams = {
-      'datasetId': this.selectedDatasetId,
-      'geneSymbols': [this.geneSymbol.toUpperCase().trim()],
-      'maxVariantsCount': 10000,
-      'inheritanceTypeFilter': [
-        'denovo', 'mendelian', 'omission', 'missing'
-      ],
-    };
-    if (this.enableCodingOnly) {
-      requestParams['effectTypes'] = this.codingEffectTypes;
-    }
-
-    this.summaryVariantsArray = this.queryService.getGeneViewVariants(requestParams);
-    await this.queryService.summaryStreamingFinishedSubject.pipe(first()).toPromise();
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-  }
-
-  private onSubmit(event) {
-    const requestParams = {
-      ...this.transformFamilyVariantsQueryParameters(),
-      'summaryVariantIds': this.summaryVariantsArrayFiltered.summaryAlleleIds.reduce(
-        (a, b) => a.concat(b), []
-      ),
-      'genomicScores': [{
-        'metric': this.geneBrowserConfig.frequencyColumn,
-        'rangeStart': this.selectedFrequencies[0] > 0 ? this.selectedFrequencies[0] : null,
-        'rangeEnd': this.selectedFrequencies[1],
-      }],
-      'download': true,
-    };
-
-    const targetId = event.target.attributes.id.nodeValue;
-    if (targetId === 'summary_download') {
-      requestParams['querySummary'] = true;
-    }
-
-    event.target.queryData.value = JSON.stringify(requestParams);
+  private onSubmit(event): void {
+    event.target.queryData.value = JSON.stringify({...this.requestParams, 'download': true});
     event.target.submit();
   }
 
-  private filterSummaryVariantsArray(
-    summaryVariantsArray: GeneViewSummaryAllelesArray, startPos: number, endPos: number
-  ): GeneViewSummaryAllelesArray {
-    const result = new GeneViewSummaryAllelesArray();
-    for (const summaryAllele of summaryVariantsArray.summaryAlleles) {
-      if (this.filterSummaryAllele(summaryAllele, startPos, endPos)) {
-        result.addSummaryAllele(summaryAllele);
-      }
-    }
-    return result;
+  public onSubmitSummary(event): void {
+    event.target.queryData.value = JSON.stringify({...this.requestParamsSummary});
+    event.target.submit();
   }
 
-  private filterSummaryAllele(summaryAllele: GeneViewSummaryAllele, startPos: number, endPos: number) {
-    if (
-      (!this.isVariantEffectSelected(summaryAllele.effect))
-      || (!this.showDenovo && summaryAllele.seenAsDenovo)
-      || (!this.showTransmitted && !summaryAllele.seenAsDenovo)
-      || (!this.selectedAffectedStatus.has(this.getVariantAffectedStatus(summaryAllele)))
-      || (!this.isVariantTypeSelected(summaryAllele.variant))
-    ) {
-      return false;
-    } else if (summaryAllele.frequency >= this.selectedFrequencies[0]
-               && summaryAllele.frequency <= this.selectedFrequencies[1]) {
-      if (summaryAllele.isCNV()
-        && !(summaryAllele.position <= startPos && summaryAllele.endPosition <= startPos)
-        && !(summaryAllele.position >= endPos && summaryAllele.endPosition >= endPos)
-      ) {
-        return true;
-      } else if (summaryAllele.position >= startPos && summaryAllele.position <= endPos) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  private isVariantEffectSelected(variantEffect: string): boolean {
-    let result = false;
-    variantEffect = variantEffect.toLowerCase();
-
-    if (this.selectedEffectTypes.has(variantEffect)) {
-      result = true;
-    }
-
-    if (this.lgds.indexOf(variantEffect) !== -1) {
-      if (this.selectedEffectTypes.has('lgds')) {
-        result = true;
-      }
-    } else if (
-      variantEffect !== 'missense' && variantEffect !== 'synonymous' &&
-      variantEffect !== 'cnv+' && variantEffect !== 'cnv-' &&
-      this.selectedEffectTypes.has('other')
-    ) {
-      result = true;
-    }
-
-    return result;
-  }
-
-  private getVariantAffectedStatus(summaryVariant: GeneViewSummaryAllele): string {
-    if (summaryVariant.seenInAffected) {
-      if (summaryVariant.seenInUnaffected) {
-        return 'Affected and unaffected';
-      } else {
-        return 'Affected only';
-      }
-    } else {
-      return 'Unaffected only';
-    }
-  }
-
-  private isVariantTypeSelected(variantType: string): boolean {
-    variantType = variantType.toLowerCase();
-    if (variantType.substr(0, 3) === 'cnv') {
-      variantType = variantType.substr(0, 4);
-    } else {
-      variantType = variantType.substr(0, 3);
-    }
-    return this.selectedVariantTypes.has(variantType);
-  }
-
-  private checkShowDenovo(checked: boolean) {
-    this.showDenovo = checked;
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
+  private updateVariants(): void {
+    this.summaryVariantsArrayFiltered = this.summaryVariantsFilter.filterSummaryVariantsArray(
+      this.summaryVariantsArray
     );
-    this.updateShownTablePreviewVariantsArray();
+    this.variantUpdate$.next();
   }
 
-  private checkShowTransmitted(checked: boolean) {
-    this.showTransmitted = checked;
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-    this.updateShownTablePreviewVariantsArray();
+  public checkAffectedStatus(affectedStatus: string, value: boolean): void {
+    value ? this.summaryVariantsFilter.selectedAffectedStatus.add(affectedStatus)
+          : this.summaryVariantsFilter.selectedAffectedStatus.delete(affectedStatus);
+    this.updateVariants();
   }
 
-  private checkEffectType(effectType: string, checked: boolean) {
+  public checkEffectType(effectType: string, value: boolean): void {
     effectType = effectType.toLowerCase();
-    if (checked) {
-      this.selectedEffectTypes.add(effectType);
-    } else {
-      this.selectedEffectTypes.delete(effectType);
-    }
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-    this.updateShownTablePreviewVariantsArray();
+    value ? this.summaryVariantsFilter.selectedEffectTypes.add(effectType)
+          : this.summaryVariantsFilter.selectedEffectTypes.delete(effectType);
+    this.updateVariants();
   }
 
-  private checkVariantType(variantType: string, checked: boolean) {
+  public checkVariantType(variantType: string, value: boolean): void {
     variantType = variantType.toLowerCase();
-    if (checked) {
-      this.selectedVariantTypes.add(variantType);
-    } else {
-      this.selectedVariantTypes.delete(variantType);
+    value ? this.summaryVariantsFilter.selectedVariantTypes.add(variantType)
+          : this.summaryVariantsFilter.selectedVariantTypes.delete(variantType);
+    this.updateVariants();
+  }
+
+  public checkShowDenovo(value: boolean): void {
+    this.summaryVariantsFilter.denovo = value;
+    this.updateVariants();
+  }
+
+  public checkShowTransmitted(value: boolean): void {
+    this.summaryVariantsFilter.transmitted = value;
+    this.updateVariants();
+  }
+
+  public setSelectedRegion(region: [number, number]): void {
+    this.summaryVariantsFilter.selectedRegion = region;
+    this.updateVariants();
+  }
+
+  public setSelectedFrequencies(frequencies: [number, number]): void {
+    this.summaryVariantsFilter.selectedFrequencies = frequencies;
+    this.updateVariants();
+  }
+
+  public getAffectedStatusColor(affectedStatus: string): string {
+    return draw.affectedStatusColors[affectedStatus];
+  }
+
+  private drawDenovoIcons() {
+    const svgElement = d3.select('#denovo');
+    draw.surroundingRectangle(svgElement, 10, 7.5, '#000000', 'Denovo LGDs');
+    draw.star(svgElement, 10, 7.5, '#000000', 'Denovo LGDs');
+    draw.surroundingRectangle(svgElement, 30, 8, '#000000', 'Denovo Missense');
+    draw.triangle(svgElement, 30, 8, '#000000', 'Denovo Missense');
+    draw.surroundingRectangle(svgElement, 50, 8, '#000000', 'Denovo Synonymous');
+    draw.circle(svgElement, 50, 8, '#000000', 'Denovo Synonymous');
+    draw.surroundingRectangle(svgElement, 70, 8, '#000000', 'Denovo Other');
+    draw.dot(svgElement, 70, 8, '#000000', 'Denovo Other');
+    draw.surroundingRectangle(svgElement, 90, 8, '#000000', 'Denovo CNV+');
+    draw.rect(svgElement, 82, 98, 5, 6, '#000000', 0.4, 'Denovo CNV+');
+    draw.surroundingRectangle(svgElement, 110, 8, '#000000', 'Denovo CNV-');
+    draw.rect(svgElement, 102, 118, 7.5, 1, '#000000', 0.4, 'Denovo CNV-');
+  }
+
+  private drawTransmittedIcons() {
+    const svgElement = d3.select('#transmitted');
+    draw.star(svgElement, 10, 7.5, '#000000', 'LGDs');
+    draw.triangle(svgElement, 30, 8, '#000000', 'Missense');
+    draw.circle(svgElement, 50, 8, '#000000', 'Synonymous');
+    draw.dot(svgElement, 70, 8, '#000000', 'Other');
+    draw.rect(svgElement, 82, 98, 5, 6, '#000000', 0.4, 'CNV+');
+    draw.rect(svgElement, 107, 125, 7.5, 1, '#000000', 0.4, 'CNV-');
+  }
+
+  private drawEffectTypesIcons() {
+    const effectIcons = {
+      '#LGDs': draw.star,
+      '#Missense': draw.triangle,
+      '#Synonymous': draw.circle,
+      '#Other': draw.dot
+    };
+    let svgElement;
+    for (const [effect, drawFunc] of Object.entries(effectIcons)) {
+      svgElement = d3.select(effect);
+      drawFunc(svgElement, 10, 8, '#000000', effect);
     }
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-    this.updateShownTablePreviewVariantsArray();
+    svgElement = d3.select('#CNV\\+');
+    draw.rect(svgElement, 5, 20, 5, 6, '#000000', 0.4, 'CNV+');
+    svgElement = d3.select('#CNV-');
+    draw.rect(svgElement, 5, 20, 7.5, 1, '#000000', 0.4, 'CNV-');
   }
-
-  private checkAffectedStatus(affectedStatus: string, checked: boolean) {
-    if (checked) {
-      this.selectedAffectedStatus.add(affectedStatus);
-    } else {
-      this.selectedAffectedStatus.delete(affectedStatus);
-    }
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-    this.updateShownTablePreviewVariantsArray();
-  }
-
-  private setSelectedRegion(region: [number, number]) {
-    this.selectedRegion = region;
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-    this.updateShownTablePreviewVariantsArray();
-  }
-
-  private setSelectedFrequencies(domain: [number, number]) {
-    this.selectedFrequencies = domain;
-    this.summaryVariantsArrayFiltered = this.filterSummaryVariantsArray(
-      this.summaryVariantsArray, ...this.selectedRegion
-    );
-    this.updateShownTablePreviewVariantsArray();
-  }
-
 }
