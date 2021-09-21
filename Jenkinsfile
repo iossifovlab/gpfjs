@@ -28,13 +28,17 @@ pipeline {
   }
   post {
     always {
-      zulipNotification(
-        topic: "${env.JOB_NAME}"
-      )
+      script {
+        try {
+          junit 'coverage/junit-report.xml'
 
-      junit 'coverage/junit-report.xml'
-
-      cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
+           cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
+        } finally {
+          zulipNotification(
+            topic: "${env.JOB_NAME}"
+          )
+        }
+      }
     }
   }
 }
