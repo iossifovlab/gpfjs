@@ -1,6 +1,6 @@
 
 // tslint:disable-next-line:import-blacklist
-import {throwError as observableThrowError, Observable, Subject, ReplaySubject, of } from 'rxjs';
+import {throwError as observableThrowError, Observable, Subject, ReplaySubject, of, BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
@@ -27,8 +27,6 @@ export class UsersService {
   private readonly checkVerificationUrl = 'users/check_verif_path';
   private readonly usersUrl = 'users';
   private readonly usersStreamingUrl = `${this.usersUrl}/streaming_search`;
-  private readonly bulkAddGroupsUrl = `${this.usersUrl}/bulk_add_groups`;
-  private readonly bulkRemoveGroupsUrl = `${this.usersUrl}/bulk_remove_groups`;
 
   private userInfo$ = new ReplaySubject<{}>(1);
   private lastUserInfo = null;
@@ -36,6 +34,7 @@ export class UsersService {
   private oboeInstance = null;
   private connectionEstablished = false;
   public usersStreamingFinishedSubject = new Subject();
+  public emailLog: BehaviorSubject<string>;
 
   constructor(
     private http: HttpClient,
@@ -45,7 +44,9 @@ export class UsersService {
     private location: Location,
     private store: Store,
     private locationStrategy: LocationStrategy
-  ) {}
+  ) {
+    this.emailLog = new BehaviorSubject('');
+  }
 
   logout(): Observable<boolean> {
     const csrfToken = this.cookieService.get('csrftoken');
@@ -329,27 +330,4 @@ export class UsersService {
 
     return usersSubject.pipe(map(data => { return User.fromJson(data); }));
   }
-
-  bulkAddGroups(users: User[], groups: string[]) {
-    const options = { withCredentials: true };
-
-    const data = {
-      userIds: users.map(u => u.id),
-      groups: groups
-    };
-
-    return this.http.post(this.config.baseUrl + this.bulkAddGroupsUrl, data, options);
-  }
-
-  bulkRemoveGroups(users: User[], groups: string[]) {
-    const options = { withCredentials: true };
-
-    const data = {
-      userIds: users.map(u => u.id),
-      groups: groups
-    };
-
-    return this.http.post(this.config.baseUrl + this.bulkRemoveGroupsUrl, data, options);
-  }
-
 }
