@@ -37,8 +37,8 @@ pipeline {
           recordIssues(
             enabledForFailure: true, aggregatingResults: false,
             tools: [
-              checkStyle(pattern: 'css-lint-report.xml', reportEncoding: 'UTF-8', id: 'checkstyle-css', name: 'css lint'),
-              checkStyle(pattern: 'ts-lint-report.xml', reportEncoding: 'UTF-8', id: 'checkstyle-ts', name: 'ts lint'),
+              checkStyle(pattern: 'css-lint-report.xml', reportEncoding: 'UTF-8', id: 'checkstyle-css', name: 'CSS lint'),
+              checkStyle(pattern: 'ts-lint-report.xml', reportEncoding: 'UTF-8', id: 'checkstyle-ts', name: 'TS lint'),
             ]
           )
         } finally {
