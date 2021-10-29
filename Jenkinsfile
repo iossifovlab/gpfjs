@@ -33,6 +33,14 @@ pipeline {
           junit 'coverage/junit-report.xml'
 
           cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
+
+          recordIssues(
+            enabledForFailure: true, aggregatingResults: false,
+            tools: [
+              checkStyle(pattern: 'css-lint-report.xml', reportEncoding: 'UTF-8'),
+              checkStyle(pattern: 'ts-lint-report.xml', reportEncoding: 'UTF-8'),
+            ]
+          )
         } finally {
           zulipNotification(
             topic: "${env.JOB_NAME}"
