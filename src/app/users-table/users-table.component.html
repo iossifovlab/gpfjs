@@ -7,10 +7,10 @@
         <gpf-table-header>
           <gpf-table-subheader>
             <span *gpfTableCellContent="let data">
-              <div style="margin-top: 10px;height: 30px;">Selected</div>
+            <div style="height: 50px;margin-top: 20px;">Selected</div>
               <div class="select-unselect-all">
                 <input
-                  style="margin: 0 auto;margin-left:-8px;"
+                  style="display: flex; margin-top: -7px; margin-left: auto; margin-right: auto; position: absolute; left: 4.5%;top:4%;"
                   type="checkbox"
                   [(ngModel)]="allSelected"
                   (ngModelChange)="checkUncheckAll(allSelected)"/>
