@@ -597,6 +597,7 @@ export class AutismGeneProfilesTableComponent implements OnInit, AfterViewInit, 
     rowElement.className.includes('row-highlight')
       ? rowElement.classList.remove('row-highlight')
       : rowElement.classList.add('row-highlight');
+
     this.highlightedRowElements.push(rowElement);
   }
 }

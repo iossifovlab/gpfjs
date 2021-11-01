@@ -42,7 +42,6 @@ export class EnrichmentTestResult {
   ) { }
 }
 
-
 export class EnrichmentEffectResult {
 
   static fromJson(json: any): EnrichmentEffectResult {

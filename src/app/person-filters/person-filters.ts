@@ -1,5 +1,5 @@
 import { ValidateIf, ValidateNested } from 'class-validator';
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsNotEmpty } from 'class-validator';
 import { IsLessThanOrEqual } from '../utils/is-less-than-validator';
 import { IsMoreThanOrEqual } from '../utils/is-more-than-validator';
 
@@ -8,7 +8,12 @@ export interface Selection {
 }
 
 export class CategoricalSelection implements Selection {
-  constructor(public selection: string[] = []) {}
+  @IsNotEmpty()
+  public selection: string[];
+
+  constructor(selection: string[] = []) {
+    this.selection = selection;
+  }
 
   isEmpty() {
     return this.selection.length === 0;
@@ -18,14 +23,14 @@ export class CategoricalSelection implements Selection {
 export class ContinuousSelection implements Selection {
   @ValidateIf(o => o.min !== null)
   @IsNumber()
-  @IsLessThanOrEqual('max')
-  @IsMoreThanOrEqual('domainMin')
+  @IsLessThanOrEqual('max', {message: 'The range beginning must be lesser than the range end.'})
+  @IsMoreThanOrEqual('domainMin', {message: 'The range beginning must be within the domain.'})
   min: number;
 
   @ValidateIf(o => o.max !== null)
   @IsNumber()
-  @IsMoreThanOrEqual('min')
-  @IsLessThanOrEqual('domainMax')
+  @IsMoreThanOrEqual('min', {message: 'The range end must be greater than the range start.'})
+  @IsLessThanOrEqual('domainMax', {message: 'The range end must be within the domain.'})
   max: number;
 
   domainMin: number;
@@ -95,5 +100,9 @@ export class ContinuousFilterState extends PersonFilterState {
     selection: ContinuousSelection = new ContinuousSelection(0, 0, 0, 0),
   ) {
     super(id, type, role, source, from, selection);
+  }
+
+  public isEmpty() {
+    return !this.source;
   }
 }

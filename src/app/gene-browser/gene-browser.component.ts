@@ -105,9 +105,6 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
           return;
         }
         this.geneService.searchGenes(this.geneSymbol).subscribe(response => {
-          if (!this.dropdown.isOpen()) {
-            this.dropdown.open();
-          }
           this.geneSymbolSuggestions = response['gene_symbols'];
         });
       })
@@ -122,6 +119,19 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
     this.geneSymbol = geneSymbol;
   }
 
+  public openDropdown(): void {
+    if (this.dropdown && !this.dropdown.isOpen()) {
+      this.dropdown.open();
+    }
+  }
+
+  public closeDropdown(): void {
+    if (this.dropdown && this.dropdown.isOpen()) {
+      this.dropdown.close();
+      this.searchBox.nativeElement.blur();
+    }
+  }
+
   public async submitGeneRequest(geneSymbol?: string) {
     this.showError = false;
     if (geneSymbol) {
@@ -130,20 +140,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
     if (!this.geneSymbol) {
       return;
     }
-    // setTimeout(() => {
-    //   if (this.dropdown && this.dropdown.isOpen()) {
-    //     console.log('CLOSE')
-    //     this.dropdown.close();
-    //     this.searchBox.nativeElement.blur();
-    //   }
-    // }, 250);
-
-    // if (this.dropdown && this.dropdown.isOpen() && this.showResults) {
-    //   console.log('CLOSE')
-    //   this.dropdown.close();
-    //   this.searchBox.nativeElement.blur();
-    // }
-
+    this.closeDropdown();
     try {
       this.selectedGene = await this.geneService.getGene(
         this.geneSymbol.toUpperCase().trim()
@@ -236,7 +233,12 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
   }
 
   public onSubmitSummary(event): void {
-    event.target.queryData.value = JSON.stringify({...this.requestParamsSummary});
+    event.target.queryData.value = JSON.stringify({
+      ...this.requestParamsSummary,
+      'summaryVariantIds': this.summaryVariantsArrayFiltered.summaryAlleleIds.reduce(
+        (a, b) => a.concat(b), []
+      ),
+    });
     event.target.submit();
   }
 
