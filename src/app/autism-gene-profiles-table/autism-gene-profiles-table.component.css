@@ -37,14 +37,14 @@
 }
 
 .cell {
-  border-right: 1px solid #ddd;
+  border-right: 2px solid #ddd;
   border-bottom: 1px solid #ddd;
   user-select: none;
   text-align: center;
 }
 
 .cell:nth-child(1) {
-  border-left: 1px solid #ddd;
+  border-left: 2px solid #ddd;
 }
 
 .row-cell {
