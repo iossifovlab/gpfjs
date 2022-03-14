@@ -1,6 +1,6 @@
 import { Component, OnInit, ElementRef, QueryList, ViewChildren } from '@angular/core';
 // eslint-disable-next-line no-restricted-imports
-import { combineLatest, Observable, ReplaySubject } from 'rxjs';
+import { combineLatest, ReplaySubject } from 'rxjs';
 import { ContinuousMeasure } from '../measures/measures';
 import { MeasuresService } from '../measures/measures.service';
 import { DatasetsService } from '../datasets/datasets.service';
@@ -9,6 +9,7 @@ import { Store } from '@ngxs/store';
 import { SetPhenoToolMeasure, PhenoToolMeasureState } from './pheno-tool-measure.state';
 import { StatefulComponent } from 'app/common/stateful-component';
 import { take } from 'rxjs/operators';
+import { Dataset } from 'app/datasets/datasets';
 
 interface Regression {
   display_name: string;
@@ -33,6 +34,8 @@ export class PhenoToolMeasureComponent extends StatefulComponent implements OnIn
   regressions: Object = {};
   regressionNames: string[];
 
+  public dataset: Dataset;
+
   constructor(
     protected store: Store,
     private measuresService: MeasuresService,
@@ -51,9 +54,9 @@ export class PhenoToolMeasureComponent extends StatefulComponent implements OnIn
         this.normalizeBy = state.normalizeBy.length ? state.normalizeBy : [];
       });
 
-    const dataset = this.datasetsService.getSelectedDataset();
-    if (dataset?.phenotypeData) {
-      this.measuresService.getRegressions(dataset.id).subscribe(res => {
+    this.dataset = this.datasetsService.getSelectedDataset();
+    if (this.dataset?.phenotypeData) {
+      this.measuresService.getRegressions(this.dataset.id).subscribe(res => {
         this.regressions = res;
         this.regressionNames = Object.getOwnPropertyNames(this.regressions);
       });
