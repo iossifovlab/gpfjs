@@ -47,7 +47,7 @@ function main() {
   build_stage "Clean and fetch fresh dependencies"
   {
     build_run rm -rf node_modules package-lock.json
-    build_run npm install
+    build_run npm install --legacy-peer-deps
   }
 
   build_stage "Lint"
