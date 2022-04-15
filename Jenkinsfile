@@ -33,7 +33,7 @@ pipeline {
         try {
           junit 'coverage/junit-report.xml'
 
-          cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
+          cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: false
 
           recordIssues(
             enabledForFailure: true, aggregatingResults: false,
