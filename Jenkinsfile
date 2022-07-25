@@ -30,7 +30,9 @@ pipeline {
     always {
       script {
         try {
+          resultBeforeTests = currentBuild.currentResult
           junit 'coverage/junit-report.xml'
+          sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
           cobertura coberturaReportFile: 'coverage/cobertura-coverage.xml', enableNewApi: true
         } finally {
