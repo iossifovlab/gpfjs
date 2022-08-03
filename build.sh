@@ -47,9 +47,9 @@ function main() {
   build_stage "Clean and fetch fresh dependencies"
   {
     build_run rm -rf node_modules package-lock.json
-    build_run apt remove -y nodejs
+    build_run apt remove -y nodejs npm
     build_run bash -c 'curl -fsSL https://deb.nodesource.com/setup_16.x | bash -'
-    build_run apt install -y nodejs
+    build_run apt install -y nodejs npm
     build_run npm install --legacy-peer-deps
   }
 
