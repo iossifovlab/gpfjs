@@ -68,6 +68,7 @@ function main() {
   build_stage "Clean and package"
   {
     build_run rm -rf dist/
+    build_run bash -c 'node -v && npm -v && tail -n 3 /wd/node_modules/webpack/package.json && openssl version'
     build_run ng build --prod --aot --configuration 'default' --base-href '/gpf_prefix/' --deploy-url '/gpf_prefix/'
   }
 
