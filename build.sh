@@ -51,6 +51,7 @@ function main() {
     build_run bash -c 'curl -fsSL https://deb.nodesource.com/setup_14.x | bash -'
     build_run apt-get install -y nodejs
     build_run npm install --legacy-peer-deps
+    build_run bash -c 'node -v && npm -v && tail -n 3 /wd/node_modules/webpack/package.json'
   }
 
   build_stage "Lint"
