@@ -47,11 +47,7 @@ function main() {
   build_stage "Clean and fetch fresh dependencies"
   {
     build_run rm -rf node_modules package-lock.json
-    build_run apt-get remove -y --purge nodejs npm
-    build_run bash -c 'curl -fsSL https://deb.nodesource.com/setup_14.x | bash -'
-    build_run apt-get install -y nodejs
     build_run npm install --legacy-peer-deps
-    build_run bash -c 'node -v && npm -v && tail -n 3 /wd/node_modules/webpack/package.json && openssl version'
   }
 
   build_stage "Lint"
@@ -69,7 +65,6 @@ function main() {
   {
     build_run rm -rf dist/
     build_run bash -c 'node -v && npm -v && tail -n 3 /wd/node_modules/webpack/package.json && openssl version'
-    build_run ng build --prod --aot --configuration 'default' --base-href '/gpf_prefix/' --deploy-url '/gpf_prefix/'
   }
 
 }
