@@ -51,5 +51,15 @@ pipeline {
         }
       }
     }
+    unstable {
+      script {
+        load('build-scripts/libjenkinsfile/zulip-tagged-notification.groovy').zulipTaggedNotification()
+      }
+    }
+    failure {
+      script {
+        load('build-scripts/libjenkinsfile/zulip-tagged-notification.groovy').zulipTaggedNotification()
+      }
+    }
   }
 }
