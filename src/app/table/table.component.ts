@@ -1,5 +1,5 @@
 import {
-  ContentChild, ViewChildren, ViewChild, HostListener, Input, Component, ContentChildren, QueryList
+  ContentChild, ViewChildren, ViewChild, HostListener, Input, Component, ContentChildren, QueryList, ChangeDetectorRef, OnInit
 } from '@angular/core';
 import { GpfTableColumnComponent } from './component/column.component';
 import { GpfTableSubheaderComponent } from './component/subheader.component';
@@ -17,7 +17,7 @@ export class SortInfo {
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.css']
 })
-export class GpfTableComponent {
+export class GpfTableComponent implements OnInit {
   @ViewChild('table') public tableViewChild: any;
   @ViewChildren('rows') public rowViewChildren: QueryList<any>;
 
@@ -35,6 +35,13 @@ export class GpfTableComponent {
 
   public showFloatingHeader: boolean;
   public showLegend: boolean;
+  public tableWidth;
+
+  public ngOnInit(): void {
+    if (this.tableViewChild !== undefined) {
+      this.tableWidth = this.tableViewChild.nativeElement.offsetWidth;
+    }
+  }
 
   @HostListener('window:scroll', ['$event'])
   public onWindowScroll(): void {
@@ -53,6 +60,11 @@ export class GpfTableComponent {
     }
 
     this.showFloatingHeader = this.tableTop();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  public onWindowResize(): void {
+    this.tableWidth = this.tableViewChild?.nativeElement.offsetWidth;
   }
 
   public set sortingInfo(sortingInfo: SortInfo) {
@@ -105,15 +117,6 @@ export class GpfTableComponent {
   }
 
   public get visibleData(): Array<any> {
-    if (this.dataSource === undefined || this.dataSource === null || this.dataSource.length === 0) {
-      if (this.columnsChildren !== undefined || this.columnsChildren !== null) {
-        let width = 0;
-        this.columnsChildren.forEach(column => {
-          width += Number(column.columnWidth.split('px')[0]);
-        });
-        this.noResultsWidth = String(width) + 'px';
-      }
-    }
     if (!this.dataSource) {
       return [];
     }
