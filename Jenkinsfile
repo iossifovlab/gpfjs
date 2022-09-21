@@ -42,7 +42,8 @@ pipeline {
             tools: [
               checkStyle(pattern: 'css-lint-report.xml', reportEncoding: 'UTF-8', id: 'checkstyle-css', name: 'CSS lint'),
               checkStyle(pattern: 'ts-lint-report.xml', reportEncoding: 'UTF-8', id: 'checkstyle-ts', name: 'TS lint'),
-            ]
+            ],
+            qualityGates: [[threshold: 1, type: 'NEW', unstable: true]]
           )
         } finally {
           zulipNotification(
