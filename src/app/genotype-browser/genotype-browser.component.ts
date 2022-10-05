@@ -17,6 +17,7 @@ import { UniqueFamilyVariantsFilterState } from 'app/unique-family-variants-filt
 import { ErrorsState, ErrorsModel } from '../common/errors.state';
 import { take } from 'rxjs/operators';
 import { StudyFiltersBlockState } from 'app/study-filters-block/study-filters-block.state';
+import { consumeReader } from 'app/utils/streaming';
 import { downloadBlobResponse } from 'app/utils/blob-download';
 
 @Component({
@@ -107,22 +108,23 @@ export class GenotypeBrowserComponent implements OnInit, OnDestroy {
     this.loadingFinished = false;
     this.loadingService.setLoadingStart();
 
-    this.genotypePreviewVariantsArray = null;
+    this.genotypePreviewVariantsArray = new GenotypePreviewVariantsArray();
     this.genotypeBrowserState['datasetId'] = this.selectedDataset.id;
     this.legend = this.selectedDataset.personSetCollections.getLegend(this.genotypeBrowserState['personSetCollection']);
 
-    this.queryService.streamingSubject.pipe(take(1)).subscribe(() => {
-      this.loadingService.setLoadingStop();
-    });
-
-    this.queryService.streamingFinishedSubject.pipe(take(1)).subscribe(() => {
-      this.loadingFinished = true;
-    });
-
     this.patchState();
-    this.genotypePreviewVariantsArray = this.queryService.getGenotypePreviewVariantsByFilter(
-      this.selectedDataset, this.genotypeBrowserState
-    );
+
+    this.queryService.streamVariants(this.selectedDataset, this.genotypeBrowserState).then(stream => {
+      this.loadingService.setLoadingStop();
+      consumeReader(
+        stream.getReader(),
+        (value) => {
+          value.data.set('genome', this.selectedDataset.genome); // Attach genome version for UCSC link construction
+          this.genotypePreviewVariantsArray.genotypePreviews.push(value);
+        },
+        () => { this.loadingFinished = true; }
+      )
+    });
   }
 
   public onDownload(): void {

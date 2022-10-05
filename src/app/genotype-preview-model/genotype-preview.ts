@@ -1,12 +1,11 @@
 export class PedigreeData {
   public static parsePosition(position: string): [number, number] {
-    if (position !== null && position !== undefined) {
-      const layout = position.split(':');
-      const coordinates = layout[layout.length - 1];
-      const result = coordinates.split(',').map(x => parseFloat(x));
-      return result as [number, number];
+    if (!position) {
+      return null;
     }
-    return null;
+    const layout = position.split(':');
+    const coords = layout[layout.length - 1].split(',');
+    return coords.map(parseFloat) as [number, number];
   }
 
   public static fromArray(arr: Array<any>): PedigreeData {
@@ -92,9 +91,5 @@ export class GenotypePreviewVariantsArray {
     }
 
     return variantsCount;
-  }
-
-  public setGenotypePreviews(genotypePreviews: GenotypePreview[]): void {
-    this.genotypePreviews = genotypePreviews;
   }
 }

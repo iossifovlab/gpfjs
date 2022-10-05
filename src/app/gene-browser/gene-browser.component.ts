@@ -13,12 +13,12 @@ import { DatasetsService } from 'app/datasets/datasets.service';
 import { FullscreenLoadingService } from 'app/fullscreen-loading/fullscreen-loading.service';
 import { GenePlotComponent } from 'app/gene-plot/gene-plot.component';
 import { ConfigService } from 'app/config/config.service';
-import { clone } from 'lodash';
 import * as d3 from 'd3';
 import * as draw from 'app/utils/svg-drawing';
 import { NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
 import { LGDS, CNV, OTHER, CODING } from 'app/effect-types/effect-types';
 import { downloadBlobResponse } from 'app/utils/blob-download';
+import { consumeReader } from 'app/utils/streaming';
 
 @Component({
   selector: 'gpf-gene-browser',
@@ -84,13 +84,6 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
     }
 
     this.subscriptions.push(
-      this.queryService.streamingFinishedSubject.subscribe(() => {
-        this.familyLoadingFinished = true;
-      }),
-      this.queryService.summaryStreamingFinishedSubject.subscribe(() => {
-        this.showResults = true;
-        this.loadingService.setLoadingStop();
-      }),
       this.route.parent.params.subscribe((params: Params) => {
         this.selectedDatasetId = params['dataset'] as string;
       }),
@@ -159,8 +152,21 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
     this.loadingService.setLoadingStart();
     this.genotypePreviewVariantsArray = null;
 
-    this.summaryVariantsArray = this.queryService.getSummaryVariants(this.requestParamsSummary);
-    this.summaryVariantsArrayFiltered = clone(this.summaryVariantsArray);
+
+    this.summaryVariantsArray = new SummaryAllelesArray();
+    this.summaryVariantsArrayFiltered = new SummaryAllelesArray();
+
+    this.queryService.streamSummaryVariants(this.requestParamsSummary).then(stream => {
+      this.loadingService.setLoadingStop();
+      consumeReader(
+        stream.getReader(),
+        (value) => {
+          this.summaryVariantsArray.addSummaryRow(value);
+          this.summaryVariantsArrayFiltered.addSummaryRow(value);
+        },
+        () => { this.showResults = true; }
+      )
+    });
 
     // reset summary variants filter, without the coding only field
     this.summaryVariantsFilter = new SummaryAllelesFilter(true, true, this.summaryVariantsFilter.codingOnly);
@@ -340,9 +346,19 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
       uniqueFamilyVariants: this.uniqueFamilyVariants,
     };
 
-    this.genotypePreviewVariantsArray = this.queryService.getGenotypePreviewVariantsByFilter(
-      this.selectedDataset, requestParams
-    );
+    this.genotypePreviewVariantsArray = new GenotypePreviewVariantsArray();
+
+    this.queryService.streamVariants(this.selectedDataset, requestParams).then(stream => {
+      this.loadingService.setLoadingStop();
+      consumeReader(
+        stream.getReader(),
+        (value) => {
+          value.data.set('genome', this.selectedDataset.genome); // Attach genome version for UCSC link construction
+          this.genotypePreviewVariantsArray.genotypePreviews.push(value);
+        },
+        () => { this.familyLoadingFinished = true; }
+      )
+    });
   }
 
   private drawDenovoIcons(): void {

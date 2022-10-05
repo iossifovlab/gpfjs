@@ -22,6 +22,17 @@ import { APP_BASE_HREF } from '@angular/common';
 
 jest.mock('../utils/svg-drawing');
 
+
+const mockReadableStream = Promise.resolve({
+  getReader() {
+    return {
+      read() {
+        return Promise.resolve({value: null, done: true});
+      },
+    };
+  },
+})
+
 class MockActivatedRoute {
   public static params = {dataset: 'testDatasetId', get: (): string => ''};
   public parent = {params: of(MockActivatedRoute.params)};
@@ -82,8 +93,8 @@ describe('GeneBrowserComponent', () => {
     fixture = TestBed.createComponent(GeneBrowserComponent);
     component = fixture.componentInstance;
     component.summaryVariantsArray = new SummaryAllelesArray();
-    jest.spyOn<any, any>(component['queryService'], 'getSummaryVariants').mockImplementation(
-      () => new SummaryAllelesArray()
+    jest.spyOn<any, any>(component['queryService'], 'streamSummaryVariants').mockImplementation(
+      () => mockReadableStream
     );
     fixture.detectChanges();
   });
