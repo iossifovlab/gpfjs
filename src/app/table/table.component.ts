@@ -36,13 +36,6 @@ export class GpfTableComponent implements OnChanges {
 
   public showFloatingHeader: boolean;
   public showLegend: boolean;
-  public tableWidth;
-
-  public ngOnInit(): void {
-    if (this.tableViewChild !== undefined) {
-      this.tableWidth = this.tableViewChild.nativeElement.offsetWidth;
-    }
-  }
 
   public ngOnChanges() {
     this.tableData = this.getVisibleData();
@@ -66,11 +59,6 @@ export class GpfTableComponent implements OnChanges {
 
     this.showFloatingHeader = this.tableTop();
     this.tableData = this.getVisibleData();
-  }
-
-  @HostListener('window:resize', ['$event'])
-  public onWindowResize(): void {
-    this.tableWidth = this.tableViewChild?.nativeElement.offsetWidth;
   }
 
   public set sortingInfo(sortingInfo: SortInfo) {
@@ -142,3 +130,4 @@ export class GpfTableComponent implements OnChanges {
     return this.dataSource.slice(scrollIndices[0], scrollIndices[1]);
   }
 }
+
