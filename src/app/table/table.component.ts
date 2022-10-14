@@ -130,4 +130,3 @@ export class GpfTableComponent implements OnChanges {
     return this.dataSource.slice(scrollIndices[0], scrollIndices[1]);
   }
 }
-
