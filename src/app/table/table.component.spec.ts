@@ -92,7 +92,7 @@ describe('GpfTableComponent', () => {
     expect(component.afterDataCellHeight).toBe(0);
 
     fixture.detectChanges();
-
+    
     expect(component.getVisibleData()).toEqual([
       {field: 3, arrayPosition: 0},
       {field: 2, arrayPosition: 0},
