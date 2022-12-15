@@ -1,14 +1,15 @@
 import { UsersService } from '../users/users.service';
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatasetsService } from './datasets.service';
 import { Dataset, toolPageLinks } from './datasets';
 import { Observable, Subscription } from 'rxjs';
-import { ActivatedRoute, NavigationEnd, Params, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { isEmpty } from 'lodash';
 import { DatasetNode } from 'app/dataset-node/dataset-node';
 import { Store } from '@ngxs/store';
 import { StateResetAll } from 'ngxs-reset-plugin';
-import { filter, map, take } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 
 @Component({
   selector: 'gpf-datasets',
@@ -34,6 +35,7 @@ export class DatasetsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private store: Store,
+    private location: Location,
   ) { }
 
   public ngOnInit(): void {
@@ -92,10 +94,8 @@ export class DatasetsComponent implements OnInit, OnDestroy {
     if (!this.isToolSelected()) {
       const firstTool = this.findFirstTool(this.selectedDataset);
       if (firstTool) {
-        this.router.navigate(
-          ['/', 'datasets', this.selectedDataset.id, this.findFirstTool(this.selectedDataset)],
-            {skipLocationChange: true}
-        );
+        this.location.replaceState('/datasets/'
+          + this.selectedDataset.id + '/' + this.findFirstTool(this.selectedDataset));
       } else {
         this.router.navigate(['/', 'datasets', this.selectedDataset.id]);
       }
