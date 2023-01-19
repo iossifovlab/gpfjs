@@ -9,6 +9,7 @@ import { environment } from 'environments/environment';
 import { ConfigService } from '../config/config.service';
 import { Dataset } from 'app/datasets/datasets';
 import { jsonStream, variantFromJSON } from '../utils/streaming';
+import { AuthService } from 'app/auth.service';
 
 @Injectable()
 export class QueryService {
@@ -28,6 +29,7 @@ export class QueryService {
     private router: Router,
     private http: HttpClient,
     private config: ConfigService,
+    private auth: AuthService,
   ) { }
 
   public downloadVariants(filter: object): Observable<HttpResponse<Blob>> {
@@ -47,12 +49,16 @@ export class QueryService {
   }
 
   public async streamVariants(dataset: Dataset, filter: object): Promise<ReadableStream> {
-    const stream = await jsonStream(`${environment.apiPath}${this.genotypePreviewVariantsUrl}`, filter)
+    const stream = await jsonStream(
+      `${environment.apiPath}${this.genotypePreviewVariantsUrl}`,
+      filter,
+      this.auth.getAccessToken()
+    );
     return stream.pipeThrough(variantFromJSON(dataset.genotypeBrowserConfig.columnIds));
   }
 
   public async streamSummaryVariants(filter: object): Promise<ReadableStream> {
-    return jsonStream(`${environment.apiPath}${this.geneViewVariants}`, filter)
+    return jsonStream(`${environment.apiPath}${this.geneViewVariants}`, filter, this.auth.getAccessToken());
   }
 
   public saveQuery(queryData: {}, page: string): Observable<object> {

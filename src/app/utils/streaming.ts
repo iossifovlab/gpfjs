@@ -23,11 +23,16 @@ function parseJSON() {
   });
 }
 
-export function jsonStream(url: string, body: object): Promise<ReadableStream> {
+export function jsonStream(url: string, body: object, accessToken: string = null): Promise<ReadableStream> {
+  const headers = {'Content-Type': 'application/json'};
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   return fetch(url, {
     method: 'POST',
     credentials: 'include',
-    headers: {'Content-Type': 'application/json'},
+    headers: headers,
     body: JSON.stringify(body)
   }).then(response => {
     return response.body
