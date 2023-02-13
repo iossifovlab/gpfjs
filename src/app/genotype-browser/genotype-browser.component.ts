@@ -94,6 +94,12 @@ export class GenotypeBrowserComponent implements OnInit, OnDestroy {
       this.genotypePreviewVariantsArray = null;
     });
 
+    this.loadingService.loadingStateChange.subscribe(val => {
+      if (val === 'break') {
+        this.genotypePreviewVariantsArray = null;
+      }
+    });
+
     this.errorsState$.subscribe(state => {
       setTimeout(() => this.disableQueryButtons = state.componentErrors.size > 0);
     });

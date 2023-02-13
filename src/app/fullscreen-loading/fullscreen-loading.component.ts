@@ -14,8 +14,16 @@ export class FullscreenLoadingComponent {
   public constructor(
     private fullscreenLoadingService: FullscreenLoadingService
   ) {
-    fullscreenLoadingService.loadingStateChange.subscribe((state: boolean) => {
-      this.showLoading = state;
+    fullscreenLoadingService.loadingStateChange.subscribe((state: string) => {
+      if (state === 'loading') {
+        this.showLoading = true;
+      } else {
+        this.showLoading = false;
+      }
     });
+  }
+
+  public loadingStop(): void {
+    this.fullscreenLoadingService.setLoadingBreak();
   }
 }

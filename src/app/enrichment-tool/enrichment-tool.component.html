@@ -12,5 +12,5 @@
       (click)="submitQuery()" />
     <gpf-save-query [disabled]="disableQueryButtons" queryType="enrichment"></gpf-save-query>
   </div>
-  <gpf-enrichment-table [enrichmentResults]="enrichmentResults"></gpf-enrichment-table>
+  <gpf-enrichment-table *ngIf="showResults" [enrichmentResults]="enrichmentResults"></gpf-enrichment-table>
 </div>

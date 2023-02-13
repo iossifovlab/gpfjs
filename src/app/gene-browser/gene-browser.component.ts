@@ -92,7 +92,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
         this.familyLoadingFinished = true;
       }),
       this.queryService.summaryStreamingFinishedSubject.subscribe(() => {
-        this.showResults = true;
+        this.showResults = this.loadingService.loadingStateChange.getValue() !== 'break';
         this.loadingService.setLoadingStop();
       }),
       this.route.parent.params.subscribe((params: Params) => {

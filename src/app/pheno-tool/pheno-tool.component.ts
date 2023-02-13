@@ -32,6 +32,8 @@ export class PhenoToolComponent implements OnInit, OnDestroy {
   public disableQueryButtons = false;
   public downloadInProgress = false;
 
+  private cancelRequest: boolean;
+
   public constructor(
     private datasetsService: DatasetsService,
     private loadingService: FullscreenLoadingService,
@@ -77,10 +79,17 @@ export class PhenoToolComponent implements OnInit, OnDestroy {
 
   public submitQuery(): void {
     this.loadingService.setLoadingStart();
+    this.phenoToolResults = null;
+    this.cancelRequest = false;
+    this.loadingService.loadingStateChange.subscribe(val => {
+      if (val === 'break') {
+        this.cancelRequest = true;
+      }
+    });
     this.phenoToolService.getPhenoToolResults(
       {datasetId: this.selectedDataset.id, ...this.phenoToolState}
     ).subscribe((phenoToolResults) => {
-      this.phenoToolResults = phenoToolResults;
+      this.phenoToolResults = this.cancelRequest === false ? phenoToolResults : null;
       this.loadingService.setLoadingStop();
     }, () => {
       this.loadingService.setLoadingStop();

@@ -22,6 +22,7 @@ export class EnrichmentToolComponent implements OnInit, OnDestroy {
   public enrichmentResults: EnrichmentResults;
   public selectedDataset: Dataset;
   public disableQueryButtons = false;
+  public showResults = true;
 
   @Select(EnrichmentToolComponent.enrichmentToolStateSelector) public state$: Observable<object[]>;
   @Select(ErrorsState) public errorsState$: Observable<ErrorsModel>;
@@ -63,7 +64,14 @@ export class EnrichmentToolComponent implements OnInit, OnDestroy {
   }
 
   public submitQuery(): void {
+    this.enrichmentResults = null;
     this.loadingService.setLoadingStart();
+    this.showResults = true;
+    this.loadingService.loadingStateChange.subscribe(val => {
+      if (val === 'break') {
+        this.showResults = false;
+      }
+    });
     this.enrichmentQueryService.getEnrichmentTest(this.enrichmentToolState).subscribe(
       (enrichmentResults) => {
         this.enrichmentResults = enrichmentResults;

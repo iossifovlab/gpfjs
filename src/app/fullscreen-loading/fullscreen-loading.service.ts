@@ -1,16 +1,22 @@
 // Loosely based on https://github.com/oxycoder/ng2-loading-animate
 
-import { Injectable, EventEmitter } from '@angular/core';
+import { Injectable, EventEmitter, Output } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable()
 export class FullscreenLoadingService {
-  public loadingStateChange: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output()
+  public loadingStateChange: BehaviorSubject<string> = new BehaviorSubject<string>('stop');
 
   public setLoadingStart(): void {
-    this.loadingStateChange.emit(true);
+    this.loadingStateChange.next('loading');
   }
 
   public setLoadingStop(): void {
-    this.loadingStateChange.emit(false);
+    this.loadingStateChange.next('stop');
+  }
+
+  public setLoadingBreak(): void {
+    this.loadingStateChange.next('break');
   }
 }
