@@ -1,4 +1,3 @@
-import { ConfigService } from '../config/config.service';
 import { GeneSetsLocalState } from './gene-sets-state';
 import { Component, OnInit } from '@angular/core';
 import { GeneSetsService } from './gene-sets.service';
@@ -30,7 +29,8 @@ export class GeneSetsComponent extends StatefulComponent implements OnInit {
 
   private selectedDatasetId: string;
   public downloadUrl: string;
-  public geneSetsLoaded = 0;
+  public finishedLoading = false;
+  public componentHeight = 154.61;
 
   public imgPathPrefix = environment.imgPathPrefix;
 
@@ -39,7 +39,6 @@ export class GeneSetsComponent extends StatefulComponent implements OnInit {
 
   public constructor(
     protected store: Store,
-    private config: ConfigService,
     private geneSetsService: GeneSetsService,
     private datasetService: DatasetsService,
   ) {
@@ -47,7 +46,6 @@ export class GeneSetsComponent extends StatefulComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.geneSetsLoaded = null;
     super.ngOnInit();
 
     this.selectedDatasetId = this.datasetService.getSelectedDataset().id;
@@ -81,7 +79,7 @@ export class GeneSetsComponent extends StatefulComponent implements OnInit {
       this.geneSetsCollections = geneSetsCollections;
       this.selectedGeneSetsCollection = geneSetsCollections[0];
       this.restoreState(state);
-      this.geneSetsLoaded = geneSetsCollections.length;
+      this.finishedLoading = true;
     });
 
     this.geneSetsResult = this.geneSetsQueryChange.pipe(
