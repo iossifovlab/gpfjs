@@ -96,6 +96,14 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  @HostListener('document:keydown.esc')
+  public kindbindClearSearch(): void {
+    const searchBox = document.getElementById('gene-search-input');
+    if (document.activeElement === searchBox && this.searchBox.nativeElement.value !== '') {
+      this.clearSearchBox();
+    }
+  }
+
   @HostListener('document:keydown.c')
   public keybindCompareGenes(): void {
     if (this.highlightedGenes.size
@@ -330,6 +338,12 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this.highlightedGenes.add(geneSymbol);
     }
+  }
+
+  public clearSearchBox(): void {
+    this.searchBox.nativeElement.value = '';
+    this.search(this.searchBox.nativeElement.value);
+    this.showSearchLoading = true;
   }
 
   private async waitForSearchBoxToLoad(): Promise<void> {
