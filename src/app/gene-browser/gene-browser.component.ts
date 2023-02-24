@@ -103,6 +103,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
       this.searchBoxInput$.pipe(debounceTime(100), distinctUntilChanged()).subscribe(() => {
         if (!this.geneSymbol) {
           this.geneSymbolSuggestions = [];
+          this.closeDropdown();
           return;
         }
         this.geneService
@@ -110,6 +111,9 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
           .pipe(take(1))
           .subscribe((response: { 'gene_symbols': string[] }) => {
             this.geneSymbolSuggestions = response.gene_symbols;
+            if (!(this.geneSymbolSuggestions.length > 0)) {
+              this.closeDropdown();
+            }
           });
       })
     );
@@ -141,15 +145,22 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
   }
 
   public openDropdown(): void {
-    if (this.dropdown && !this.dropdown.isOpen()) {
+    if (this.dropdown && !this.dropdown.isOpen() && this.geneSymbolSuggestions.length > 0) {
       this.dropdown.open();
     }
+  }
+
+  public clearSearch(): void {
+    if (!this.dropdown.isOpen() && this.geneSymbol === '') {
+      (this.searchBox.nativeElement as HTMLElement).blur();
+    }
+    this.geneSymbol = '';
+    this.dropdown.close();
   }
 
   public closeDropdown(): void {
     if (this.dropdown && this.dropdown.isOpen()) {
       this.dropdown.close();
-      (this.searchBox.nativeElement as HTMLElement).blur();
     }
   }
 

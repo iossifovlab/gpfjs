@@ -117,6 +117,7 @@
           <input
             #searchBox
             (keyup)="searchKeystrokes$.next(searchBox.value)"
+            (keydown.escape)="keybindClearSearch()"
             id="gene-search-input"
             class="search-input form-control"
             autocomplete="off"

@@ -88,16 +88,7 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
     this.keystrokeSubscription.unsubscribe();
   }
 
-  @HostListener('document:keydown.esc')
-  public keybindClearHighlight(): void {
-    if (this.highlightedGenes.size
-        && (document.activeElement === document.body || document.activeElement.nodeName === 'BUTTON')) {
-      this.highlightedGenes.clear();
-    }
-  }
-
-  @HostListener('document:keydown.esc')
-  public kindbindClearSearch(): void {
+  public keybindClearSearch(): void {
     const searchBox = document.getElementById('gene-search-input');
     if (document.activeElement === searchBox && this.searchBox.nativeElement.value !== '') {
       this.clearSearchBox();
