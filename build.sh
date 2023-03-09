@@ -44,6 +44,12 @@ function main() {
   build_run_ctx_init "container" "$node_base_image_ref"
   defer_ret build_run_ctx_reset
 
+  build_stage "Install node.14"
+  {
+    build_run bash -c "curl -fsSL https://deb.nodesource.com/setup_14.x | -E bash -"
+    build_run DEBIAN_FRONTEND=noninteractive  apt-get install -y nodejs
+  }
+
   build_stage "Clean and fetch fresh dependencies"
   {
     build_run rm -rf dist
