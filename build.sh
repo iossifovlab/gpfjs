@@ -39,19 +39,27 @@ function main() {
   defer_ret build_run_ctx_reset_all_persistent
   defer_ret build_run_ctx_reset
 
-  local node_base_image_ref
-  node_base_image_ref="$(e docker_img_iossifovlab_node_base)"
-  build_run_ctx_init "container" "$node_base_image_ref"
-  defer_ret build_run_ctx_reset
 
-  build_stage "Install node.14"
+  local gpfjs_dev_image="gpfjs-dev"
+  local gpfjs_dev_image_ref
+  # create gpf docker image
+  build_stage "Create gpfjs-dev docker image"
   {
-    build_run bash -c "curl -fsSL https://deb.nodesource.com/setup_14.x | -E bash -"
-    build_run DEBIAN_FRONTEND=noninteractive  apt-get install -y nodejs
+    local docker_img_iossifovlab_mamba_base_tag
+    docker_img_iossifovlab_mamba_base_tag="$(e docker_img_iossifovlab_mamba_base_tag)"
+    build_docker_image_create "$gpfjs_dev_image" . ./Dockerfile "$docker_img_iossifovlab_mamba_base_tag"
+    gpfjs_dev_image_ref="$(e docker_img_gpfjs_dev)"
   }
+
+  build_run_ctx_init "container" "$gpfjs_dev_image_ref"
+  defer_ret build_run_ctx_reset
 
   build_stage "Clean and fetch fresh dependencies"
   {
+
+    build_run_attach
+
+
     build_run rm -rf dist
     build_run rm -rf node_modules package-lock.json
     build_run npm install
@@ -65,10 +73,10 @@ function main() {
       || echo "stylelint exited with $?"
   }
 
-#   build_stage "Tests"
-#   {
-#     build_run bash -c 'npm run-script ng test -- --no-watch --no-progress --code-coverage --browsers=ChromeHeadlessCI | tee /dev/stderr | grep -e "^TOTAL: " && exit ${PIPESTATUS[0]} || false'
-#   }
+  build_stage "Tests"
+  {
+    build_run bash -c 'npm run-script ng test -- --no-watch --no-progress --code-coverage --browsers=ChromeHeadlessCI | tee /dev/stderr | grep -e "^TOTAL: " && exit ${PIPESTATUS[0]} || false'
+  }
 
 #   build_stage "Sonarqube Analisys"
 #   {
