@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location } from '@angular/common';
 import { GeneService } from 'app/gene-browser/gene.service';
@@ -24,7 +24,7 @@ import { downloadBlobResponse } from 'app/utils/blob-download';
   templateUrl: './gene-browser.component.html',
   styleUrls: ['./gene-browser.component.css'],
 })
-export class GeneBrowserComponent implements OnInit, OnDestroy {
+export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(NgbDropdown) private dropdown: NgbDropdown;
   @ViewChild('searchBox') private searchBox: ElementRef;
   @ViewChild('filters', { static: false }) public set filters(element: HTMLElement) {
@@ -130,6 +130,10 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
     }
   }
 
+  public ngAfterViewInit(): void {
+    this.searchBox.nativeElement.focus();
+  }
+
   public ngOnDestroy(): void {
     this.loadingService.setLoadingStop();
     this.subscriptions.map(subscription => subscription.unsubscribe());
@@ -144,8 +148,11 @@ export class GeneBrowserComponent implements OnInit, OnDestroy {
     this.location.replaceState(`datasets/${this.selectedDatasetId}/gene-browser`);
   }
 
-  public openDropdown(): void {
-    if (this.dropdown && !this.dropdown.isOpen() && this.geneSymbolSuggestions.length > 0) {
+  public openDropdown($event): void {
+    if (this.dropdown && !this.dropdown.isOpen()
+        && this.geneSymbolSuggestions.length > 0 && $event.key !== 'Escape'
+        || $event.keyCode === 86 && ($event.ctrlKey||$event.metaKey)
+    ) {
       this.dropdown.open();
     }
   }

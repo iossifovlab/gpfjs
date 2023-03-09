@@ -89,10 +89,7 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public keybindClearSearch(): void {
-    const searchBox = document.getElementById('gene-search-input');
-    if (document.activeElement === searchBox && this.searchBox.nativeElement.value !== '') {
-      this.clearSearchBox();
-    }
+    this.clearSearchBox();
   }
 
   @HostListener('document:keydown.c')

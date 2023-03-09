@@ -11,11 +11,11 @@
           id="search-box"
           placeholder="Search gene"
           autocomplete="off"
+          autofocus
           spellcheck="false"
           [(ngModel)]="geneSymbol"
-          (keyup)="openDropdown(); searchBoxInput$.next(geneSymbol)"
-          (click)="reset(); geneSymbol = ''; showError = false"
-          (keydown.enter)="submitGeneRequest()"
+          (keyup)="searchBoxInput$.next(geneSymbol); openDropdown($event)"
+          (keydown.enter)="submitGeneRequest(); geneSymbol = ''; clearSearch()"
           (keydown.escape)="clearSearch()" />
 
         <div ngbDropdownMenu id="genes-dropdown">
