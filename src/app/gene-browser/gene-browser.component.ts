@@ -7,7 +7,7 @@ import { SummaryAllelesArray, SummaryAllelesFilter } from 'app/gene-browser/summ
 import { GenotypePreviewVariantsArray } from 'app/genotype-preview-model/genotype-preview';
 import { QueryService } from 'app/query/query.service';
 import { first, debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { Dataset, GeneBrowser, PersonSet } from 'app/datasets/datasets';
 import { DatasetsService } from 'app/datasets/datasets.service';
 import { FullscreenLoadingService } from 'app/fullscreen-loading/fullscreen-loading.service';
@@ -60,6 +60,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
   private subscriptions: Subscription[] = [];
   private selectedDatasetId: string;
   private variantUpdate$: Subject<void> = new Subject();
+  private geneSymbol$ = new BehaviorSubject<string>(null);
 
   public downloadInProgress = false;
   public downloadInProgressSummary = false;
@@ -158,9 +159,6 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public clearSearch(): void {
-    if (!this.dropdown.isOpen() && this.geneSymbol === '') {
-      (this.searchBox.nativeElement as HTMLElement).blur();
-    }
     this.geneSymbol = '';
     this.dropdown.close();
   }
@@ -175,17 +173,20 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.showError) {
       return;
     }
-
     if (geneSymbol) {
-      this.geneSymbol = geneSymbol.toUpperCase().trim();
+      this.geneSymbol$.next(geneSymbol.toUpperCase());
+    } else {
+      this.geneSymbol$.next(this.geneSymbol.toUpperCase());
+      if (!this.geneSymbol) {
+        return;
+      }
     }
-    if (!this.geneSymbol) {
-      return;
-    }
+
+    this.geneSymbol = this.geneSymbol$.getValue().toUpperCase();
     this.closeDropdown();
     try {
       this.selectedGene = await this.geneService.getGene(
-        this.geneSymbol.toUpperCase().trim()
+        this.geneSymbol$.getValue().trim()
       ).pipe(first()).toPromise();
     } catch (error) {
       console.error(error);
@@ -194,7 +195,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.location.replaceState(
-      `datasets/${this.selectedDatasetId}/gene-browser/${this.geneSymbol.toUpperCase()}`
+      `datasets/${this.selectedDatasetId}/gene-browser/${this.geneSymbol$.getValue()}`
       + `?coding_only=${String(this.summaryVariantsFilter.codingOnly)}`
     );
 
@@ -347,7 +348,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
   private get requestParamsSummary(): Record<string, unknown> {
     const requestParams = {
       datasetId: this.selectedDatasetId,
-      geneSymbols: [this.geneSymbol.toUpperCase().trim()],
+      geneSymbols: [this.geneSymbol$.getValue().trim()],
       maxVariantsCount: 10000,
       inheritanceTypeFilter: ['denovo', 'mendelian', 'omission', 'missing'],
     };

@@ -15,7 +15,7 @@
           spellcheck="false"
           [(ngModel)]="geneSymbol"
           (keyup)="searchBoxInput$.next(geneSymbol); openDropdown($event)"
-          (keydown.enter)="submitGeneRequest(); geneSymbol = ''; clearSearch()"
+          (keydown.enter)="submitGeneRequest(); searchBox.blur()"
           (keydown.escape)="clearSearch()" />
 
         <div ngbDropdownMenu id="genes-dropdown">
@@ -24,7 +24,7 @@
             class="dropdown-item"
             type="button"
             (click)="selectGeneSymbol(suggestion)"
-            (keydown.enter)="selectGeneSymbol(suggestion); submitGeneRequest()">
+            (keydown.enter)="selectGeneSymbol(suggestion); submitGeneRequest(); searchBox.blur()">
             <span>{{ suggestion }}</span>
           </button>
         </div>
@@ -52,7 +52,12 @@
   </div>
 
   <div style="margin-top: 15px">
-    <input type="button" style="width: 75px" class="btn btn-md btn-primary" value="Go" (click)="submitGeneRequest()" />
+    <input
+      type="button"
+      style="width: 75px"
+      class="btn btn-md btn-primary"
+      value="Go"
+      (click)="submitGeneRequest(); searchBox.blur()" />
   </div>
 
   <div *ngIf="showResults">
