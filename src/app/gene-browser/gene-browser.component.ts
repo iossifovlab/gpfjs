@@ -170,9 +170,6 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public async submitGeneRequest(geneSymbol?: string): Promise<void> {
-    if (this.showError) {
-      return;
-    }
     if (geneSymbol) {
       this.geneSymbol$.next(geneSymbol.toUpperCase());
     } else {
@@ -200,6 +197,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
     );
 
     this.showResults = false;
+    this.showError = false;
     this.loadingService.setLoadingStart();
     this.genotypePreviewVariantsArray = null;
 
