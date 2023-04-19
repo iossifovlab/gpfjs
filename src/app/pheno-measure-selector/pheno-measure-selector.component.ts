@@ -1,5 +1,6 @@
 import { Component, OnChanges, Input, ViewChild, Output, EventEmitter, 
-  ElementRef } from '@angular/core';
+  ElementRef, 
+  HostListener} from '@angular/core';
 
 import { MeasuresService } from '../measures/measures.service';
 import { ContinuousMeasure } from '../measures/measures';
@@ -18,6 +19,14 @@ export class PhenoMeasureSelectorComponent implements OnChanges {
 
   @ViewChild('searchBox') private searchBox: ElementRef;
   @ViewChild(NgbDropdown) private dropdown: NgbDropdown;
+
+  @HostListener('document:keydown', ['$event'])
+  public clearSearch($event) {
+    if ($event.key === "Escape" || $event.key === "Esc") {
+      this.clear();
+      this.searchBox.nativeElement.focus();
+    }
+  }
 
   public measures: Array<ContinuousMeasure> = [];
   public filteredMeasures: Array<ContinuousMeasure> = [];

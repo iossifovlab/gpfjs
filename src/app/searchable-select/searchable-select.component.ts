@@ -31,6 +31,15 @@ export class SearchableSelectComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  @HostListener('document:keydown', ['$event'])
+  public clearSearch($event) {
+    if ($event.key === "Escape" || $event.key === "Esc") {
+      this.searchBox.nativeElement.value = '';
+      this.search.emit('');
+      this.dropdown.close();
+    }
+  }
+
   public onEnterPress(): void {
     if (this.isInGeneBrowser) {
       this.onSelect(this.searchBox.nativeElement.value);
