@@ -32,8 +32,8 @@ export class SearchableSelectComponent implements AfterViewInit, OnChanges {
   }
 
   @HostListener('document:keydown', ['$event'])
-  public clearSearch($event) {
-    if ($event.key === "Escape" || $event.key === "Esc") {
+  public clearSearch($event): void {
+    if ($event.key === 'Escape' || $event.key === 'Esc') {
       this.searchBox.nativeElement.value = '';
       this.search.emit('');
       this.dropdown.close();

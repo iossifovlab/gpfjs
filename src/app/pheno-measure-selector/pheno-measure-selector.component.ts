@@ -1,5 +1,5 @@
-import { Component, OnChanges, Input, ViewChild, Output, EventEmitter, 
-  ElementRef, 
+import { Component, OnChanges, Input, ViewChild, Output, EventEmitter,
+  ElementRef,
   HostListener} from '@angular/core';
 
 import { MeasuresService } from '../measures/measures.service';
@@ -21,8 +21,8 @@ export class PhenoMeasureSelectorComponent implements OnChanges {
   @ViewChild(NgbDropdown) private dropdown: NgbDropdown;
 
   @HostListener('document:keydown', ['$event'])
-  public clearSearch($event) {
-    if ($event.key === "Escape" || $event.key === "Esc") {
+  public clearSearch($event): void {
+    if ($event.key === 'Escape' || $event.key === 'Esc') {
       this.clear();
       this.searchBox.nativeElement.focus();
     }
