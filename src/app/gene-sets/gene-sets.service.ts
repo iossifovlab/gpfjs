@@ -41,7 +41,7 @@ export class GeneSetsService {
         geneSetsTypes: geneSetsTypes,
         limit: 100
       }, options)
-      .pipe(map((res: any) => GeneSet.fromJsonArray(res)));
+      .pipe(map((res: GeneSet[]) => GeneSet.fromJsonArray(res)));
   }
 
   public downloadGeneSet(geneSet: GeneSet): Promise<Response> {

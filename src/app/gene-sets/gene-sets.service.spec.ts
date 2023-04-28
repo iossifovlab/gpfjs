@@ -5,6 +5,7 @@ import { ConfigService } from 'app/config/config.service';
 import { of } from 'rxjs';
 import { GeneSetsService } from './gene-sets.service';
 import { APP_BASE_HREF } from '@angular/common';
+import { GeneSet } from './gene-sets';
 
 describe('GeneSetsService', () => {
   let service: GeneSetsService;
@@ -42,7 +43,10 @@ describe('GeneSetsService', () => {
     );
   });
 
-  xit('should downloadGeneSet', () => {
-    // TODO
+  it('should downloadGeneSet', () => {
+    const spy = jest.spyOn(service, 'downloadGeneSet').mockReturnValue(Promise.resolve() as any);
+    service.downloadGeneSet(new GeneSet('CHD8', 1, 'desc1', 'download1'));
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(new GeneSet('CHD8', 1, 'desc1', 'download1'));
   });
 });
