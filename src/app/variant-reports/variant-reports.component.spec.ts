@@ -59,15 +59,13 @@ class MockActivatedRoute {
 
   public constructor(datasetId: string = 'test_dataset') {
     this.datasetId = datasetId;
-    this.params = {dataset: this.datasetId, get: () => { return '' }};
+    this.params = {dataset: this.datasetId, get: () => ''};
     this.parent = {params: of(this.params)};
     this.queryParamMap = of(this.params);
   }
 }
 
 class VariantReportsServiceMock {
-  private variantsUrl = 'common_reports/studies/';
-  private downloadUrl = 'common_reports/families_data/';
   private datasetId: string;
 
   public constructor(datasetId: string = 'test_dataset') {
@@ -212,7 +210,9 @@ class VariantReportsServiceMock {
             groupName: 'Role',
             rows: ['people_male', 'people_female', 'people_total'],
             columns: ['prb', 'mom', 'sib', 'dad'],
-            getChildrenCounter: function() { return 0 }
+            getChildrenCounter: function() {
+              return 0;
+            }
           }
         ],
       },
@@ -314,7 +314,7 @@ describe('VariantReportsComponent', () => {
     component = fixture.componentInstance;
 
     //Stubbing the function to reduce mock test data
-    component['chunkPedigrees'] = function(a, b) { return null; };
+    component['chunkPedigrees'] = (a, b) => null;
 
     component.ngOnInit();
   });
@@ -328,8 +328,11 @@ describe('VariantReportsComponent', () => {
     expect(component.currentDenovoReport).toBeUndefined();
   });
 
-  xit('should test download', () => {
-    // TODO
+  it('should test download', () => {
+    const spy = jest.spyOn(variantReportsServiceMock, 'downloadFamilies').mockReturnValue(Promise.resolve() as any);
+    component.onDownload();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith();
   });
 });
 
@@ -358,7 +361,9 @@ describe('VariantReportsComponent Denovo', () => {
     component = fixture.componentInstance;
 
     //Stubbing the function to reduce mock test data
-    component['chunkPedigrees'] = function(a, b): null { return null; };
+    component['chunkPedigrees'] = function(a, b): null {
+      return null;
+    };
 
     component.ngOnInit();
   });

@@ -20,7 +20,6 @@ import { GenePlotComponent } from 'app/gene-plot/gene-plot.component';
 import { GenotypePreviewTableComponent } from 'app/genotype-preview-table/genotype-preview-table.component';
 import { APP_BASE_HREF } from '@angular/common';
 import { HttpResponse } from '@angular/common/http';
-import * as streamSaver from 'streamsaver';
 
 jest.mock('../utils/svg-drawing');
 

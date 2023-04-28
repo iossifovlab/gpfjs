@@ -23,7 +23,10 @@ describe('QueryService', () => {
     expect(service).toBeTruthy();
   });
 
-  xit('should test downloadVariants', () => {
-    // TODO
+  it('should test downloadVariants', () => {
+    const spy = jest.spyOn(service, 'downloadVariants').mockReturnValue(Promise.resolve() as any);
+    service.downloadVariants(['filter1']);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(['filter1']);
   });
 });

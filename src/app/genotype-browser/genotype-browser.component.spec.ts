@@ -107,7 +107,10 @@ describe('GenotypeBrowserComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  xit('should test download', () => {
-    // TODO
+  it('should test download', () => {
+    const spy = jest.spyOn(queryService, 'downloadVariants').mockReturnValue(Promise.resolve() as any);
+    component.onDownload();
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith({datasetId: 'testDataset', download: true});
   });
 });

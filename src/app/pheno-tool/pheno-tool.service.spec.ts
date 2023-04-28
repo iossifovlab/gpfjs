@@ -48,7 +48,10 @@ describe('PhenoToolService', () => {
     );
   });
 
-  xit('should download pheno tool results', () => {
-    // TODO
+  it('should download pheno tool results', () => {
+    const spy = jest.spyOn(service, 'downloadPhenoToolResults').mockReturnValue(Promise.resolve() as any);
+    service.downloadPhenoToolResults(['filter1']);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(['filter1']);
   });
 });
