@@ -121,9 +121,9 @@ describe('GeneBrowserComponent', () => {
     jest.spyOn<any, any>(component, 'drawTransmittedIcons').mockImplementation(() => null);
     jest.spyOn<any, any>(component, 'drawEffectTypesIcons').mockImplementation(() => null);
     component.filters = null;
-    expect(component['drawDenovoIcons']).toHaveBeenCalled();
-    expect(component['drawTransmittedIcons']).toHaveBeenCalled();
-    expect(component['drawEffectTypesIcons']).toHaveBeenCalled();
+    expect(component['drawDenovoIcons']).toHaveBeenCalledWith();
+    expect(component['drawTransmittedIcons']).toHaveBeenCalledWith();
+    expect(component['drawEffectTypesIcons']).toHaveBeenCalledWith();
   });
 
   it('should select affected status', () => {
@@ -169,14 +169,14 @@ describe('GeneBrowserComponent', () => {
     jest.spyOn<any, any>(component, 'updateVariants');
     component.setSelectedRegion([1, 2]);
     expect(component.summaryVariantsFilter.selectedRegion).toStrictEqual([1, 2]);
-    expect(component['updateVariants']).toHaveBeenCalled();
+    expect(component['updateVariants']).toHaveBeenCalledWith();
   });
 
   it('should set selected frequencies', () => {
     jest.spyOn<any, any>(component, 'updateVariants');
     component.setSelectedFrequencies([3, 4]);
     expect(component.summaryVariantsFilter.selectedFrequencies).toStrictEqual([3, 4]);
-    expect(component['updateVariants']).toHaveBeenCalled();
+    expect(component['updateVariants']).toHaveBeenCalledWith();
   });
 
   it('should not reset coding only on request and properly handle CNV and Other effect types', () => {
@@ -233,7 +233,9 @@ describe('GeneBrowserComponent', () => {
     });
   });
 
-  xit('should test download', () => {
-    // TODO
+  it('should test download', () => {
+    const spy = jest.spyOn(mockQueryService, 'downloadVariants').mockReturnValue(Promise.resolve() as any);
+    component.onDownload();
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
