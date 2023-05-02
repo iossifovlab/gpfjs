@@ -4,7 +4,7 @@ import { ConfigService } from 'app/config/config.service';
 import { DatasetsService } from 'app/datasets/datasets.service';
 import { PedigreeData } from 'app/genotype-preview-model/genotype-preview';
 import { VariantReportsService } from 'app/variant-reports/variant-reports.service';
-import * as streamSaver from 'streamsaver';
+import { saveStreamingResponse } from 'app/utils/streaming-download';
 
 @Component({
   selector: 'gpf-pedigree',
@@ -62,15 +62,14 @@ export class PedigreeComponent {
     this.modal.close();
   }
 
-  public onSubmit(event): void {
+  public onSubmit(event): Promise<void> {
     const args = {
       study_id: this.datasetsService.getSelectedDataset().id,
       group_name: this.groupName,
       counter_id: this.counterId
     };
-    this.variantReportsService.downloadPedigreeCount(args).then((response) => {
-      const fileStream = streamSaver.createWriteStream('family.ped');
-      response.body.pipeTo(fileStream);
+    return this.variantReportsService.downloadPedigreeCount(args).then((response) => {
+      saveStreamingResponse(response, 'family.ped');
     });
   }
 }

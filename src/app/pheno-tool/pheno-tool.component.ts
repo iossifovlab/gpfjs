@@ -12,7 +12,7 @@ import { FamilyFiltersBlockComponent } from 'app/family-filters-block/family-fil
 import { PhenoToolMeasureState } from 'app/pheno-tool-measure/pheno-tool-measure.state';
 import { Select, Selector } from '@ngxs/store';
 import { ErrorsState, ErrorsModel } from 'app/common/errors.state';
-import * as streamSaver from 'streamsaver';
+import { saveStreamingResponse } from 'app/utils/streaming-download';
 
 @Component({
   selector: 'gpf-pheno-tool',
@@ -100,7 +100,7 @@ export class PhenoToolComponent implements OnInit, OnDestroy {
     });
   }
 
-  public onDownload(): void {
+  public onDownload(): Promise<void> {
     this.downloadInProgress = true;
 
     const args = {
@@ -108,10 +108,9 @@ export class PhenoToolComponent implements OnInit, OnDestroy {
       datasetId: this.selectedDataset.id
     };
 
-    this.phenoToolService.downloadPhenoToolResults(args).then((response) => {
+    return this.phenoToolService.downloadPhenoToolResults(args).then((response) => {
       this.downloadInProgress = false;
-      const fileStream = streamSaver.createWriteStream('pheno_report.csv');
-      response.body.pipeTo(fileStream);
+      saveStreamingResponse(response, 'pheno_report.csv');
     }, (err) => {
       this.downloadInProgress = false;
     });

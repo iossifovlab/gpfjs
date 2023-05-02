@@ -10,7 +10,7 @@ import { environment } from 'environments/environment';
 import { Dictionary } from 'lodash';
 import * as _ from 'lodash';
 import { IDropdownSettings } from 'ng-multiselect-dropdown';
-import * as streamSaver from 'streamsaver';
+import { saveStreamingResponse } from 'app/utils/streaming-download';
 
 @Pipe({ name: 'getPeopleCounterRow' })
 export class PeopleCounterRowPipe implements PipeTransform {
@@ -162,24 +162,22 @@ export class VariantReportsComponent implements OnInit {
     return this.orderByColumnOrder(effectType.data, phenotypes);
   }
 
-  public onDownload(): void {
+  public onDownload(): Promise<void> {
     this.downloadInProgress = true;
-    this.variantReportsService.downloadFamilies().then((response) => {
+    return this.variantReportsService.downloadFamilies().then((response) => {
       this.downloadInProgress = false;
-      const fileStream = streamSaver.createWriteStream('families.ped');
-      response.body.pipeTo(fileStream);
+      saveStreamingResponse(response, 'families.ped');
     }, (err) => {
       this.downloadInProgress = false;
     });
   }
 
-  public getDownloadLinkTags(): void {
+  public getDownloadLinkTags(): Promise<void> {
     const datasetId = this.datasetsService.getSelectedDataset().id;
     const tags = this.getSelectedTags().join(',');
 
-    this.variantReportsService.downloadPedigreeTags(datasetId, tags).then((response) => {
-      const fileStream = streamSaver.createWriteStream('families.ped');
-      response.body.pipeTo(fileStream);
+    return this.variantReportsService.downloadPedigreeTags(datasetId, tags).then((response) => {
+      saveStreamingResponse(response, 'families.ped');
     });
   }
 
