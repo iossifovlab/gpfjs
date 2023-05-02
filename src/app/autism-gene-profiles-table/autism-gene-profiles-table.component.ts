@@ -66,7 +66,7 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
     this.keystrokeSubscription = this.searchKeystrokes$.pipe(
       distinctUntilChanged(),
       tap(() => {
-        if (this.searchBox.nativeElement.value !== '') {
+        if ((this.searchBox.nativeElement as HTMLInputElement).value !== '') {
           this.showSearchLoading = true;
         }
       }),
@@ -302,7 +302,7 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
         this.toggleHighlightGene(geneSymbol);
       }
     } else if (column.clickable === 'goToQuery') {
-      this.goToQueryEvent.emit({geneSymbol, statisticId: column.id});
+      this.goToQueryEvent.emit({geneSymbol: geneSymbol, statisticId: column.id});
     } else if (column.clickable === 'createTab' && linkClick) {
       this.openSingleView(geneSymbol);
     }
