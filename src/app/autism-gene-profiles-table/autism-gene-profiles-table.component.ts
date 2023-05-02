@@ -66,7 +66,9 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
     this.keystrokeSubscription = this.searchKeystrokes$.pipe(
       distinctUntilChanged(),
       tap(() => {
-        this.showSearchLoading = true;
+        if (this.searchBox.nativeElement.value !== '') {
+          this.showSearchLoading = true;
+        }
       }),
       debounceTime(250),
     ).subscribe(searchTerm => {
@@ -89,7 +91,9 @@ export class AgpTableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   public keybindClearSearch(): void {
-    this.clearSearchBox();
+    if ((this.searchBox.nativeElement as HTMLInputElement).value !== '') {
+      this.clearSearchBox();
+    }
   }
 
   @HostListener('document:keydown.c')

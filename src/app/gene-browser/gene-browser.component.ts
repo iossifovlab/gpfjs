@@ -169,6 +169,11 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  public resetPage(): void {
+    this.reset();
+    this.clearSearch();
+  }
+
   public async submitGeneRequest(geneSymbol?: string): Promise<void> {
     if (geneSymbol) {
       this.geneSymbol$.next(geneSymbol.toUpperCase());
