@@ -48,10 +48,13 @@ describe('PhenoToolService', () => {
     );
   });
 
-  it('should download pheno tool results', () => {
-    const spy = jest.spyOn(service, 'downloadPhenoToolResults').mockReturnValue(Promise.resolve() as any);
-    service.downloadPhenoToolResults(['filter1']);
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(['filter1']);
+  it('should download pheno tool results', async() => {
+    service.downloadPhenoToolResults = jest.fn().mockResolvedValue({});
+
+    const spy2 = jest.spyOn(service, 'downloadPhenoToolResults');
+    await service.downloadPhenoToolResults(['filter1']).then(() => {
+      expect(spy2).toHaveBeenCalledTimes(1);
+      expect(spy2).toHaveBeenCalledWith(['filter1']);
+    });
   });
 });

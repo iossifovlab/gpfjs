@@ -23,10 +23,13 @@ describe('QueryService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should test downloadVariants', () => {
-    const spy = jest.spyOn(service, 'downloadVariants').mockReturnValue(Promise.resolve() as any);
-    service.downloadVariants(['filter1']);
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(['filter1']);
+  it('should test downloadVariants', async() => {
+    service.downloadVariants = jest.fn().mockResolvedValue({});
+
+    const spy2 = jest.spyOn(service, 'downloadVariants');
+    await service.downloadVariants({}).then(() => {
+      expect(spy2).toHaveBeenCalledTimes(1);
+      expect(spy2).toHaveBeenCalledWith({});
+    });
   });
 });

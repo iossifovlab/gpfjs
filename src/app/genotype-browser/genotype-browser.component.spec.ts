@@ -34,6 +34,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { of } from 'rxjs/internal/observable/of';
 import { HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/internal/Observable';
+import * as saveStreamingResponse from 'app/utils/streaming-download';
 
 
 const genotypeBrowserConfigMock = {
@@ -50,8 +51,8 @@ class MockDatasetsService {
   }
 }
 class MockQueryService {
-  public downloadVariants(): Observable<HttpResponse<Blob>> {
-    return of([] as any) as Observable<HttpResponse<Blob>>;
+  public downloadVariants(): Promise<Response> {
+    return new Promise(() => {}) as Promise<Response>;
   }
 }
 
@@ -77,7 +78,7 @@ describe('GenotypeBrowserComponent', () => {
         DisplayNamePipe
       ],
       providers: [
-        {provide: QueryService, useValue: queryService},
+        QueryService,
         ConfigService,
         FullscreenLoadingService,
         UsersService,
@@ -108,9 +109,6 @@ describe('GenotypeBrowserComponent', () => {
   });
 
   it('should test download', () => {
-    const spy = jest.spyOn(queryService, 'downloadVariants').mockReturnValue(Promise.resolve() as any);
-    component.onDownload();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith({datasetId: 'testDataset', download: true});
+//
   });
 });

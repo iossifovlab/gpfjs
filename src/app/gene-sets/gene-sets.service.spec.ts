@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { GeneSetsService } from './gene-sets.service';
 import { APP_BASE_HREF } from '@angular/common';
 import { GeneSet } from './gene-sets';
+import * as saveStreamingResponse from 'app/utils/streaming-download';
 
 describe('GeneSetsService', () => {
   let service: GeneSetsService;
@@ -43,10 +44,13 @@ describe('GeneSetsService', () => {
     );
   });
 
-  it('should downloadGeneSet', () => {
-    const spy = jest.spyOn(service, 'downloadGeneSet').mockReturnValue(Promise.resolve() as any);
-    service.downloadGeneSet(new GeneSet('CHD8', 1, 'desc1', 'download1'));
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(new GeneSet('CHD8', 1, 'desc1', 'download1'));
+  it('should downloadGeneSet', async() => {
+    service.downloadGeneSet = jest.fn().mockResolvedValue({});
+
+    const spy2 = jest.spyOn(service, 'downloadGeneSet');
+    await service.downloadGeneSet(new GeneSet('CHD8', 1, 'desc1', 'download1')).then(() => {
+      expect(spy2).toHaveBeenCalledTimes(1);
+      expect(spy2).toHaveBeenCalledWith({"count": 1, "desc": "desc1", "download": "download1", "name": "CHD8"});
+    });
   });
 });

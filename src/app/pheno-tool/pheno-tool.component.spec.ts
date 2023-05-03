@@ -19,6 +19,7 @@ import { GeneSymbolsState, SetGeneSymbols } from 'app/gene-symbols/gene-symbols.
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';
+import * as saveStreamingResponse from 'app/utils/streaming-download';
 
 class PhenoToolServiceMock {
   public getPhenoToolResults(): Observable<string> {
@@ -119,11 +120,17 @@ describe('PhenoToolComponent', () => {
     expect(component.phenoToolResults).toBeNull();
   });
 
-  it('should test download', () => {
-    const spy = jest.spyOn(phenoToolMockService, 'downloadPhenoToolResults').mockReturnValue(Promise.resolve() as any);
-    component.onDownload();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith({datasetId: 'testDatasetId'});
+  it('should test download', async() => {
+    const spyStreamingResponse = jest.spyOn(saveStreamingResponse, 'saveStreamingResponse').mockImplementation();
+
+    phenoToolMockService.downloadPhenoToolResults = jest.fn().mockResolvedValue(true);
+
+    const spyPhenoToolService = jest.spyOn(phenoToolMockService, 'downloadPhenoToolResults');
+    await component.onDownload().then(() => {
+      expect(spyStreamingResponse).toHaveBeenCalledTimes(1);
+      expect(spyPhenoToolService).toHaveBeenCalledTimes(1);
+      expect(spyPhenoToolService).toHaveBeenCalledWith({datasetId: 'testDatasetId'});
+    });
   });
 });
 

@@ -10,6 +10,7 @@ import { ResizeService } from 'app/table/resize.service';
 import { DenovoReport, PedigreeCounter } from './variant-reports';
 import { PedigreeData } from 'app/genotype-preview-model/genotype-preview';
 import { HttpResponse } from '@angular/common/http';
+import * as saveStreamingResponse from 'app/utils/streaming-download';
 
 class MockDatasetsService {
   public getSelectedDataset(): object {
@@ -328,11 +329,18 @@ describe('VariantReportsComponent', () => {
     expect(component.currentDenovoReport).toBeUndefined();
   });
 
-  it('should test download', () => {
-    const spy = jest.spyOn(variantReportsServiceMock, 'downloadFamilies').mockReturnValue(Promise.resolve() as any);
-    component.onDownload();
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith();
+
+  it('should test download', async() => {
+    const spy1 = jest.spyOn(saveStreamingResponse, 'saveStreamingResponse').mockImplementation();
+
+    variantReportsServiceMock.downloadFamilies = jest.fn().mockResolvedValue(true);
+
+    const spy2 = jest.spyOn(variantReportsServiceMock, 'downloadFamilies');
+    await component.onDownload().then(() => {
+      expect(spy1).toHaveBeenCalledTimes(1);
+      expect(spy2).toHaveBeenCalledTimes(1);
+      expect(spy2).toHaveBeenCalledWith();
+    });
   });
 });
 
@@ -379,4 +387,7 @@ describe('VariantReportsComponent Denovo', () => {
       done();
     }, 0);
   });
+
+
+
 });
