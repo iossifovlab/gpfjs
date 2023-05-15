@@ -5,7 +5,7 @@
     id="search-box"
     style="width: 100%"
     autocomplete="off"
-    (keyup)="searchBoxChange(searchBox.value)"
+    (keyup)="searchBoxChange(searchBox.value); onFocus($event)"
     placeholder="Select or start typing to search"
     (click)="searchBox.value = ''; onFocus($event)"
     (keydown.enter)="onEnterPress()"

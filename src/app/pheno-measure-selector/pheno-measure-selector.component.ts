@@ -1,6 +1,4 @@
-import { Component, OnChanges, Input, ViewChild, Output, EventEmitter,
-  ElementRef,
-  HostListener} from '@angular/core';
+import { Component, OnChanges, Input, ViewChild, Output, EventEmitter, ElementRef } from '@angular/core';
 
 import { MeasuresService } from '../measures/measures.service';
 import { ContinuousMeasure } from '../measures/measures';
@@ -13,20 +11,23 @@ import { NgbDropdown } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./pheno-measure-selector.component.css']
 })
 export class PhenoMeasureSelectorComponent implements OnChanges {
+  public handleKeyup($event): void {
+    if (!($event.key === 'Escape' || $event.key === 'Esc')) {
+      this.loadDropdownData();
+    } else {
+      // eslint-disable-next-line
+      $event.preventDefault();
+      this.clear();
+      (this.searchBox.nativeElement as HTMLInputElement).focus();
+    }
+    this.openDropdown();
+  }
   @Input() public datasetId: string;
   @Output() public selectedMeasureChange = new EventEmitter(true);
   @Output() public measuresChange = new EventEmitter(true);
 
   @ViewChild('searchBox') private searchBox: ElementRef;
   @ViewChild(NgbDropdown) private dropdown: NgbDropdown;
-
-  @HostListener('document:keydown', ['$event'])
-  public clearSearch($event): void {
-    if ($event.key === 'Escape' || $event.key === 'Esc') {
-      this.clear();
-      this.searchBox.nativeElement.focus();
-    }
-  }
 
   public measures: Array<ContinuousMeasure> = [];
   public filteredMeasures: Array<ContinuousMeasure> = [];
@@ -81,7 +82,6 @@ export class PhenoMeasureSelectorComponent implements OnChanges {
       this.filterData();
     } else {
       this.loadingDropdown = true;
-
       const intervalId = setInterval(() => {
         if (!this.loadingMeasures) {
           this.filterData();

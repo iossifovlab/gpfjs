@@ -64,6 +64,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public downloadInProgress = false;
   public downloadInProgressSummary = false;
+  public loadingInterrupted = false;
 
   public constructor(
     public readonly configService: ConfigService,
@@ -124,6 +125,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
       this.queryService.cancelSummaryStreamPost();
       this.loadingService.setLoadingStop();
       this.location.replaceState(`datasets/${this.selectedDatasetId}/gene-browser`);
+      this.loadingInterrupted = true;
     });
 
     if (this.selectedDataset.studies?.length > 1) {
@@ -172,6 +174,9 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
   public resetPage(): void {
     this.reset();
     this.clearSearch();
+    if (this.loadingInterrupted) {
+      this.loadingInterrupted = false;
+    }
   }
 
   public async submitGeneRequest(geneSymbol?: string): Promise<void> {
@@ -184,15 +189,19 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
 
-    this.geneSymbol = this.geneSymbol$.getValue().toUpperCase();
     this.closeDropdown();
     try {
       this.selectedGene = await this.geneService.getGene(
-        this.geneSymbol$.getValue().trim()
+        this.geneSymbol$.getValue().trim().toUpperCase()
       ).pipe(first()).toPromise();
+      this.geneSymbol = this.geneSymbol$.getValue().toUpperCase();
     } catch (error) {
-      console.error(error);
       this.showError = true;
+      (this.searchBox.nativeElement as HTMLInputElement).blur();
+      setTimeout(() => {
+        (this.searchBox.nativeElement as HTMLInputElement).focus();
+        this.dropdown.open();
+      }, 750);
       return;
     }
 
@@ -224,6 +233,7 @@ export class GeneBrowserComponent implements OnInit, OnDestroy, AfterViewInit {
     ];
 
     this.updateShownTablePreviewVariantsArray();
+    (this.searchBox.nativeElement as HTMLInputElement).blur();
   }
 
   public onDownload(): void {
