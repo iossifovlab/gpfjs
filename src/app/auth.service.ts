@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { ConfigService } from './config/config.service';
-import { Observable, Subject, take, tap, catchError, of } from 'rxjs';
+import { Observable, Subject, take, tap, catchError, of, retryWhen, retry, timer } from 'rxjs';
 import { Router } from '@angular/router';
 import { APP_BASE_HREF } from '@angular/common';
 import pkceChallenge from 'pkce-challenge';
@@ -56,10 +56,27 @@ export class AuthService {
   }
 
   public revokeAccessToken(): Observable<object> {
-    return this.http.post(`${this.config.rootUrl}${this.baseHref}o/revoke_token/`, {
-      client_id: this.config.oauthClientId,
-      token: this.accessToken,
-    }, this.options).pipe(take(1), tap(this.clearTokens));
+    return this.http.post(
+      `${this.config.rootUrl}${this.baseHref}o/revoke_token/`,
+      {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        client_id: this.config.oauthClientId,
+        token: '',
+      },
+      this.options
+    ).pipe(
+      retry({
+        count: 2,
+        delay: (error: HttpErrorResponse) => {
+          // If the access token is not yet set, retry
+          if (error.status === 400) {
+            return timer(1000);
+          }
+          throw error;
+        }
+      }),
+      tap(this.clearTokens)
+    );
   }
 
   public clearTokens(): void {
