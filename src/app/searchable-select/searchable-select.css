@@ -34,3 +34,7 @@
 #search-box:disabled {
   background-color: rgb(239, 239, 239);
 }
+
+::ng-deep .dropdown-item:focus {
+  outline: none;
+}

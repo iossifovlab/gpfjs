@@ -1,5 +1,6 @@
 <div ngbDropdown class="input-group" style="display: inline-flex; flex-wrap: nowrap">
   <input
+    ngbDropdownToggle
     ngbDropdownAnchor
     #searchBox
     id="search-box"
@@ -18,6 +19,7 @@
     </ng-container>
 
     <button
+      ngbDropdownItem
       *ngFor="let measure of filteredMeasures"
       class="dropdown-item"
       type="button"

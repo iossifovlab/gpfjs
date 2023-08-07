@@ -1,5 +1,6 @@
 <div ngbDropdown role="group" style="display: inline-flex; flex-wrap: nowrap; width: 100%" placement="bottom-right">
   <input
+    ngbDropdownToggle
     [hidden]="caption"
     #searchBox
     id="search-box"
@@ -32,6 +33,7 @@
   <div ngbDropdownMenu style="width: 100%; overflow-x: hidden; max-height: 300px; overflow-y: scroll; z-index: 150">
     <div id="loading-dropdown-text" *ngIf="data.length === 0 && searchBox.value !== ''">Nothing found</div>
     <button
+      ngbDropdownItem
       *ngFor="let element of data"
       class="dropdown-item"
       type="button"
