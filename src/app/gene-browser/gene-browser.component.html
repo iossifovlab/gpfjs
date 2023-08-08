@@ -6,7 +6,7 @@
     <div class="card-block">
       <div ngbDropdown class="input-group panel" style="padding: 15px; align-items: baseline">
         <input
-          ngbDropdownAnchor
+          ngbDropdownToggle
           #searchBox
           id="search-box"
           placeholder="Search gene"
@@ -20,6 +20,7 @@
 
         <div ngbDropdownMenu id="genes-dropdown">
           <button
+            ngbDropdownItem
             *ngFor="let suggestion of geneSymbolSuggestions"
             class="dropdown-item"
             type="button"
