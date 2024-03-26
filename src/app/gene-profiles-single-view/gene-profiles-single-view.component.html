@@ -20,13 +20,13 @@
           #stickySpan
           [ngClass]="isInGeneCompare && isHeaderSticky ? 'sticky' : ''"
           [ngStyle]="{ width: isInGeneCompare ? '100%' : '1455px' }"
-          style="padding-bottom: 8px; padding-top: 4px">
+          style="padding-bottom: 12px; padding-top: 4px">
           <h2 style="padding-left: 0">{{ geneSymbol }}</h2>
         </div>
         <div class="wrapper" [ngClass]="{ 'compare-wrapper': isInGeneCompare, compact: compactView }" #wrapperElement>
           <table id="links-table">
             <tr>
-              <td style="border-right: 1px solid #dee2e6; padding: 0 24px; text-align: center">Links</td>
+              <td style="border-right: 1px solid #dee2e6; padding-left: 2px; text-align: center">Links</td>
               <td *ngFor="let links of gene.geneLinks">
                 <a [attr.href]="links.url" [id]="links.name + '-link'" target="_blank">{{ links.name }}</a>
               </td>
@@ -109,7 +109,7 @@
         </div>
 
         <div
-          style="display: inline-flex; align-items: stretch; flex-wrap: wrap"
+          style="display: inline-flex; align-items: stretch; flex-wrap: wrap; flex-direction: column"
           [ngClass]="{ 'compare-wrapper': isInGeneCompare, 'compact': compactView }"
           class="wrapper">
           <ng-container *ngFor="let dataset of config.datasets">

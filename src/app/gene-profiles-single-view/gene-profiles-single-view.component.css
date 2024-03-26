@@ -39,13 +39,13 @@ td {
 }
 
 #links-table td {
-  padding: 0 16px;
+  padding: 0 8px;
+  height: 16px;
 }
 
 #links-table {
   display: block;
   margin-bottom: 18px;
-  border: 1px solid #dee2e6;
   white-space: nowrap;
 }
 
