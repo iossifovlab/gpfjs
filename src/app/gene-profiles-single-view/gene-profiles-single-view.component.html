@@ -49,9 +49,8 @@
                     [style.visibility]="
                       getGeneScoreByKey(genomicScoreCategory.category, score.scoreName).help ? 'visible' : 'hidden'
                     "
-                    [modalContent]="
-                      getGeneScoreByKey(genomicScoreCategory.category, score.scoreName).help
-                    "></gpf-helper-modal>
+                    [modalContent]="getGeneScoreByKey(genomicScoreCategory.category, score.scoreName).help"
+                    [isMarkdown]="true"></gpf-helper-modal>
                 </div>
               </td>
               <ng-container *ngIf="genomicScoresGeneScores.length === gene.genomicScores.length">
