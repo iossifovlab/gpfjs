@@ -1,8 +1,8 @@
 table {
   width: 600px;
   max-width: 600px;
-  margin-bottom: 15px;
-  margin-right: 15px;
+  margin-bottom: 16px;
+  margin-right: 16px;
 }
 
 td {
@@ -20,6 +20,20 @@ td {
   padding: 12px;
 }
 
+a {
+  color: #0645ad;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.datasets-table {
+  max-width: 1216px;
+}
+
 .datasets-table th {
   height: unset;
   vertical-align: unset;
@@ -31,36 +45,26 @@ td {
   border: 1px solid #dee2e6;
 }
 
-.gene-sets-table tr,
-.gene-sets-table td,
-#links-table td {
-  height: 54px;
-  max-height: 54px;
+.datasets-table a {
+  padding: 0;
+  width: unset;
 }
 
-#links-table td {
-  padding: 0 16px;
+.datasets-table td,
+.datasets-table th {
+  padding: 8px;
 }
 
-#links-table {
-  display: block;
-  margin-bottom: 18px;
-  border: 1px solid #dee2e6;
-  white-space: nowrap;
+.compact.datasets-table td {
+  padding: 4px;
 }
 
-.wrapper {
-  display: flex;
-  align-items: flex-start;
+.compact.datasets-table {
+  width: 0 !important;
+  max-width: unset !important;
 }
 
-.link-genotype-browser,
-.link-genotype-browser:hover {
-  cursor: pointer;
-  padding: 15px;
-}
-
-.vertical-text {
+.compact.datasets-table thead span {
   word-break: break-word;
   writing-mode: vertical-rl;
   transform-origin: center center;
@@ -77,6 +81,35 @@ td {
   flex-direction: column;
 }
 
+.gene-sets-table tr,
+.gene-sets-table td,
+#links-table td {
+  height: 54px;
+  max-height: 54px;
+}
+
+#links-table td {
+  padding: 0 8px;
+  height: 16px;
+}
+
+#links-table {
+  display: block;
+  margin-bottom: 18px;
+  white-space: nowrap;
+}
+
+.wrapper {
+  display: flex;
+  align-items: flex-start;
+}
+
+.link-genotype-browser,
+.link-genotype-browser:hover {
+  cursor: pointer;
+  padding: 15px;
+}
+
 .compare-wrapper {
   flex-direction: column;
 }
@@ -86,9 +119,10 @@ td {
 }
 
 .compare-wrapper .datasets-table {
+  border: 0;
   display: block;
-  overflow-x: auto;
-  white-space: nowrap;
+  overflow: auto;
+  width: 600px !important;
 }
 
 .compare-div {
@@ -145,16 +179,6 @@ td {
 h2 {
   margin: 0;
   padding-left: 10px;
-}
-
-a {
-  color: #0645ad;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
 }
 
 :host::ng-deep#values-description {
