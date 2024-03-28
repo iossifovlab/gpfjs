@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Input, OnChanges, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import {
   GeneProfilesDatasetPersonSet, GeneProfilesDatasetStatistic, GeneProfilesGene,
   GeneProfilesGenomicScores, GeneProfilesSingleViewConfig, GeneProfilesEffectType
@@ -10,7 +10,6 @@ import { GeneScores } from 'app/gene-scores/gene-scores';
 import { GeneProfilesService } from 'app/gene-profiles-block/gene-profiles.service';
 import { switchMap, take } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { Location } from '@angular/common';
 import { Store } from '@ngxs/store';
 import { QueryService } from 'app/query/query.service';
 import { GenomicScore } from 'app/genotype-browser/genotype-browser';
@@ -31,7 +30,7 @@ import { EffectTypes } from 'app/effect-types/effect-types';
 })
 export class GeneProfileSingleViewComponent implements OnInit {
   @ViewChild('stickySpan', {static: false}) public menuElement: ElementRef;
-  @ViewChild('wrapperElement') public wrapperElement: ElementRef;
+  @ViewChildren('datasetTable') public datasetTables: QueryList<ElementRef>;
 
   @Input() public readonly geneSymbol: string;
   @Input() public config: GeneProfilesSingleViewConfig;
@@ -64,7 +63,6 @@ export class GeneProfileSingleViewComponent implements OnInit {
   public constructor(
     private geneProfilesService: GeneProfilesService,
     private geneScoresService: GeneScoresService,
-    private location: Location,
     private router: Router,
     private queryService: QueryService,
     private store: Store
@@ -86,7 +84,14 @@ export class GeneProfileSingleViewComponent implements OnInit {
   @HostListener('window:resize')
   public onResize(): void {
     const viewWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    if (viewWidth < 1250) {
+    this.datasetTables.forEach(table => {
+      // 35 pixels added to make up for page scroll and paddings/margins
+      if ((table.nativeElement as HTMLElement).offsetWidth + 35 >= viewWidth) {
+        (table.nativeElement as HTMLElement).classList.add('compact');
+      }
+    });
+
+    if (viewWidth < 1252) {
       this.compactView = true;
     } else {
       this.compactView = false;
@@ -130,9 +135,13 @@ export class GeneProfileSingleViewComponent implements OnInit {
         });
       }
     });
-    this.onResize();
-  }
 
+    if (!this.datasetTables) {
+      this.waitForDatasetTables().then(() => {
+        this.onResize();
+      });
+    }
+  }
 
   public getGeneScoreByKey(category: string, key: string): GeneScores {
     return this.genomicScoresGeneScores
@@ -227,5 +236,16 @@ export class GeneProfileSingleViewComponent implements OnInit {
   public errorModalBack(): void {
     this.errorModal = false;
     this.router.navigate(['/gene-profiles']);
+  }
+
+  private async waitForDatasetTables(): Promise<void> {
+    return new Promise<void>(resolve => {
+      const timer = setInterval(() => {
+        if (this.datasetTables.length === this.config.datasets.length) {
+          resolve();
+          clearInterval(timer);
+        }
+      }, 50);
+    });
   }
 }
