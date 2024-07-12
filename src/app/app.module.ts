@@ -134,7 +134,7 @@ import { FamilyTypeFilterState } from './family-type-filter/family-type-filter.s
 import { SortingButtonsComponent } from './sorting-buttons/sorting-buttons.component';
 import { BnNgIdleService } from 'bn-ng-idle';
 import { NgxsModule } from '@ngxs/store';
-import { NgxsResetPluginModule } from 'ngxs-reset-plugin';
+import { withNgxsResetPlugin } from 'ngxs-reset-plugin';
 import { VarianttypesState } from './variant-types/variant-types.state';
 import { EffecttypesState } from './effect-types/effect-types.state';
 import { GenderState } from './gender/gender.state';
@@ -434,7 +434,6 @@ const appRoutes: Routes = [
       UniqueFamilyVariantsFilterState, ErrorsState, GeneProfilesState, DatasetNodeState, DatasetState
     ], {compatibility: { strictContentSecurityPolicy: true }}
     ),
-    NgxsResetPluginModule.forRoot(),
     DragDropModule,
     ClipboardModule,
     ScrollingModule,
@@ -495,6 +494,7 @@ const appRoutes: Routes = [
       deps: [Sentry.TraceService],
       multi: true,
     },
+    withNgxsResetPlugin()
   ],
 
   bootstrap: [AppComponent]
