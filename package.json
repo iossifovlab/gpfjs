@@ -33,6 +33,7 @@
     "@popperjs/core": "2.11.8",
     "@types/d3": "7.4.3",
     "@types/lodash": "4.17.6",
+    "@types/marked": "6.0.0",
     "@types/sprintf-js": "1.1.4",
     "angular-confirmation-popover": "7.0.0",
     "angular-markdown-editor": "3.1.0",
