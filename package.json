@@ -93,8 +93,6 @@
     "typescript": "5.5.3"
   },
   "browserslist": [
-    "defaults",
-    "not IE 11",
-    "maintained node versions"
+    "defaults and fully supports es6-module"
   ]
 }
