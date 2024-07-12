@@ -13,6 +13,11 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
+            "allowedCommonJsDependencies": [
+              "validator",
+              "localforage",
+              "element-resize-detector"
+           ],
             "outputPath": "dist/gpfjs",
             "index": "src/index.html",
             "main": "src/main.ts",
