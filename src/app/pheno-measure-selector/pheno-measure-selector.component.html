@@ -28,7 +28,7 @@
       >
     </ng-container>
     <mat-option
-      *ngFor="let measure of filteredMeasures"
+      *ngFor="let measure of filteredMeasures.slice(0, 50)"
       class="dropdown-item"
       type="button"
       (click)="selectMeasure(measure)"
