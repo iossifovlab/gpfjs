@@ -31,6 +31,8 @@ pipeline {
     always {
       script {
         try {
+          discoverGitReferenceBuild(latestBuildIfNotFound: true, maxCommits: 400, skipUnknownCommits: true)
+
           resultBeforeTests = currentBuild.currentResult
           junit 'coverage/junit-report.xml'
           sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
