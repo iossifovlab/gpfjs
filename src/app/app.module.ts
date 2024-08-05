@@ -62,7 +62,6 @@ import { MultiContinuousFilterComponent } from './multi-continuous-filter/multi-
 import { CategoricalFilterComponent } from './categorical-filter/categorical-filter.component';
 import { MeasuresService } from './measures/measures.service';
 import { FamilyIdsComponent } from './family-ids/family-ids.component';
-import { FamilyIdsState } from './family-ids/family-ids.state';
 import { NumberWithExpPipe } from './utils/number-with-exp.pipe';
 import { PhenoToolComponent } from './pheno-tool/pheno-tool.component';
 import { PhenoMeasureSelectorComponent } from './pheno-measure-selector/pheno-measure-selector.component';
@@ -185,10 +184,13 @@ import { MarkdownEditorComponent } from './markdown-editor/markdown-editor.compo
 import { FamilyTagsComponent } from './family-tags/family-tags.component';
 import { FamilyTagsState } from './family-tags/family-tags.state';
 import { GeneProfilesState } from './gene-profiles-table/gene-profiles-table.state';
-import { DatasetNodeState } from './dataset-node/dataset-node.state';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatInputModule } from '@angular/material/input';
 import { DatasetState } from './datasets/datasets.state';
+
+import { StoreModule } from '@ngrx/store';
+import { errorsReducer } from './common/errors_ngrx.state';
+import { familyIdsReducer } from './family-ids/family-ids.state';
 
 const appRoutes: Routes = [
   {
@@ -428,10 +430,10 @@ const appRoutes: Routes = [
     NgxsModule.forRoot([
       VarianttypesState, EffecttypesState, GenderState,
       InheritancetypesState, PersonIdsState, PresentInChildState, PresentInParentState,
-      GeneSymbolsState, FamilyIdsState, FamilyTagsState, RegionsFilterState, StudyTypesState, GeneSetsState,
+      GeneSymbolsState, FamilyTagsState, RegionsFilterState, StudyTypesState, GeneSetsState,
       GeneScoresState, EnrichmentModelsState, PedigreeSelectorState, FamilyTypeFilterState,
       StudyFiltersState, PersonFiltersState, GenomicScoresBlockState, PhenoToolMeasureState,
-      UniqueFamilyVariantsFilterState, ErrorsState, GeneProfilesState, DatasetNodeState, DatasetState
+      UniqueFamilyVariantsFilterState, ErrorsState, GeneProfilesState, DatasetState
     ], {compatibility: { strictContentSecurityPolicy: true }}
     ),
     NgxsResetPluginModule.forRoot(),
@@ -441,7 +443,8 @@ const appRoutes: Routes = [
     AngularMarkdownEditorModule.forRoot(),
     MatAutocompleteModule,
     MatInputModule,
-    NoopAnimationsModule
+    NoopAnimationsModule,
+    StoreModule.forRoot({ errors: errorsReducer, familyIds: familyIdsReducer }),
   ],
   providers: [
     CookieService,

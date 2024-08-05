@@ -1,7 +1,7 @@
 import { Component, AfterViewInit, Input, ViewChild, OnInit, HostListener } from '@angular/core';
 import { Dataset } from '../datasets/datasets';
 import { Store, Selector } from '@ngxs/store';
-import { FamilyIdsModel, FamilyIdsState } from 'app/family-ids/family-ids.state';
+import { Store as Store1} from '@ngrx/store';
 import { PersonFiltersModel, PersonFiltersState, SetFamilyFilters } from 'app/person-filters/person-filters.state';
 import { StateReset } from 'ngxs-reset-plugin';
 import { NgbNav } from '@ng-bootstrap/ng-bootstrap';
@@ -11,6 +11,7 @@ import { FamilyCounter, PedigreeCounter, VariantReport } from 'app/variant-repor
 import { switchMap, take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DatasetModel } from 'app/datasets/datasets.state';
+import { resetFamilyIds } from 'app/family-ids/family-ids.state';
 
 @Component({
   selector: 'gpf-family-filters-block',
@@ -37,6 +38,7 @@ export class FamilyFiltersBlockComponent implements OnInit, AfterViewInit {
 
   public constructor(
     private store: Store,
+    private store1: Store1,
     private variantReportsService: VariantReportsService,
   ) { }
 
@@ -85,30 +87,42 @@ export class FamilyFiltersBlockComponent implements OnInit, AfterViewInit {
   }
 
   public ngAfterViewInit(): void {
-    this.store.selectOnce(FamilyFiltersBlockComponent.familyFiltersBlockState).subscribe(state => {
-      if (state['familyIds']) {
+    this.store1.pipe(take(1)).subscribe(state => {
+      console.log(state)
+      if (state['familyIds'].length !== 0) {
         setTimeout(() => {
           this.ngbNav.select('familyIds');
           this.hasContent = true;
         });
-      } else if (state['selectedFamilyTags'] || state['deselectedFamilyTags'] || state['tagIntersection']) {
-        setTimeout(() => {
-          this.ngbNav.select('familyTags');
-          this.hasContent = true;
-        });
-      } else if (state['familyFilters']) {
-        setTimeout(() => {
-          this.ngbNav.select('advanced');
-          this.hasContent = true;
-        });
       }
     });
+
+    // this.store.selectOnce(FamilyFiltersBlockComponent.familyFiltersBlockState).subscribe(state => {
+    //   if (state['familyIds']) {
+    //     setTimeout(() => {
+    //       this.ngbNav.select('familyIds');
+    //       this.hasContent = true;
+    //     });
+    //   } else if (state['selectedFamilyTags'] || state['deselectedFamilyTags'] || state['tagIntersection']) {
+    //     setTimeout(() => {
+    //       this.ngbNav.select('familyTags');
+    //       this.hasContent = true;
+    //     });
+    //   } else if (state['familyFilters']) {
+    //     setTimeout(() => {
+    //       this.ngbNav.select('advanced');
+    //       this.hasContent = true;
+    //     });
+    //   }
+    // });
   }
 
   public onNavChange(): void {
     this.store.dispatch(new SetFamilyFilters([]));
-    this.store.dispatch(new StateReset(FamilyIdsState));
+    // this.store.dispatch(new StateReset(FamilyIdsState));
     this.store.dispatch(new SetFamilyTags([], [], true));
+
+    // this.store1.dispatch(resetFamilyIds());
   }
 
   public updateTags(tags: {selected: string[]; deselected: string[]}): void {
@@ -146,14 +160,15 @@ export class FamilyFiltersBlockComponent implements OnInit, AfterViewInit {
     }
   }
 
-  @Selector([FamilyIdsState, FamilyTagsState, PersonFiltersState])
+  @Selector([FamilyTagsState, PersonFiltersState])
   public static familyFiltersBlockState(
-    familyIdsState: FamilyIdsModel, familyTagsState: FamilyTagsModel, personFiltersState: PersonFiltersModel
+    familyTagsState: FamilyTagsModel, personFiltersState: PersonFiltersModel
   ): object {
     const res = {};
-    if (familyIdsState.familyIds.length) {
-      res['familyIds'] = familyIdsState.familyIds;
-    }
+    res['kek'] = 5;
+    // if (familyIdsState.familyIds.length) {
+      res['familyIdsState']['familyIds'] = 'f1'
+    // }
     if (familyTagsState.selectedFamilyTags.length) {
       res['selectedFamilyTags'] = familyTagsState.selectedFamilyTags;
     }

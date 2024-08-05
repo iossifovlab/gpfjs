@@ -7,6 +7,7 @@ import { GeneProfilesService } from './gene-profiles-block/gene-profiles.service
 import { GeneProfilesSingleViewConfig } from './gene-profiles-single-view/gene-profiles-single-view';
 import { NgbConfig } from '@ng-bootstrap/ng-bootstrap';
 import { Store } from '@ngxs/store';
+import { Store as Store1 } from '@ngrx/store';
 import { DatasetModel } from './datasets/datasets.state';
 
 @Component({
@@ -37,6 +38,7 @@ export class AppComponent implements OnInit {
     private usersService: UsersService,
     private ngbConfig: NgbConfig,
     protected store: Store,
+    protected store1: Store1,
   ) {
     ngbConfig.animation = false;
   }
