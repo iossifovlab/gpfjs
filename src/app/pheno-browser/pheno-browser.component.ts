@@ -1,14 +1,13 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { Observable, BehaviorSubject, ReplaySubject, combineLatest, of, zip, Subscription } from 'rxjs';
 import { PhenoBrowserService } from './pheno-browser.service';
-import { PhenoInstruments, PhenoInstrument, PhenoMeasures, PhenoMeasure } from './pheno-browser';
+import { PhenoInstruments, PhenoInstrument, PhenoMeasures } from './pheno-browser';
 import { Dataset } from 'app/datasets/datasets';
-import { debounceTime, distinctUntilChanged, map, share, switchMap, take, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, switchMap, take } from 'rxjs/operators';
 import { environment } from 'environments/environment';
 import { ConfigService } from 'app/config/config.service';
-import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngxs/store';
 import { DatasetModel } from 'app/datasets/datasets.state';
 import { DatasetsService } from 'app/datasets/datasets.service';
@@ -22,21 +21,24 @@ export class PhenoBrowserComponent implements OnInit, OnDestroy {
   public selectedInstrument$: BehaviorSubject<PhenoInstrument> = new BehaviorSubject<PhenoInstrument>(undefined);
   public searchTermObs$: Observable<string>;
   public measuresToShow: PhenoMeasures;
+  // To trigger child change detection with on push strategy.
+  public measuresChangeTick = 0;
   public measuresSubscription: Subscription;
   public errorModal = false;
 
   public instruments: Observable<PhenoInstruments>;
-
   public selectedDataset: Dataset;
-
   public input$ = new ReplaySubject<string>(1);
-
   @ViewChild('searchBox') public searchBox: ElementRef;
-
   public imgPathPrefix = environment.imgPathPrefix;
 
+  private getPageSubscription: Subscription = new Subscription();
+  private pageCount = 1;
+  private allPagesLoaded = false;
+  private sortBy = '';
+  private orderBy = '';
+
   public constructor(
-    private http: HttpClient,
     private route: ActivatedRoute,
     private router: Router,
     private phenoBrowserService: PhenoBrowserService,
@@ -59,6 +61,7 @@ export class PhenoBrowserComponent implements OnInit, OnDestroy {
       this.initMeasuresToShow(this.selectedDataset.id);
     });
 
+    this.getPageSubscription?.unsubscribe();
     this.focusSearchBox();
   }
 
@@ -70,51 +73,22 @@ export class PhenoBrowserComponent implements OnInit, OnDestroy {
     );
 
     this.measuresSubscription = combineLatest([this.searchTermObs$, this.selectedInstrument$]).pipe(
-      tap(([searchTerm, newSelection]) => {
+      switchMap(([searchTerm, instrument]) => {
+        this.updateUrl(searchTerm, instrument);
+
         this.measuresToShow = null;
-        const queryParamsObject: {
-            instrument: string;
-            search: string;
-        } = {
-          instrument: undefined,
-          search: undefined
-        };
-        if (newSelection) {
-          queryParamsObject.instrument = newSelection;
-        }
-        if (searchTerm) {
-          queryParamsObject.search = searchTerm;
-        }
-        const url = this.router.createUrlTree(['.'], {
-          /* Removed unsupported properties by Angular migration: replaceUrl. */
-          relativeTo: this.route,
-          queryParams: queryParamsObject
-        }).toString();
-        this.location.replaceState(url);
-      }),
-      switchMap(([searchTerm, newSelection]) => {
-        this.measuresToShow = null;
-        return combineLatest([
-          of(searchTerm),
-          of(newSelection),
-          this.phenoBrowserService.getMeasuresInfo(datasetId)
-        ]);
-      }),
-      switchMap(([searchTerm, newSelection, measuresInfo]) => {
-        this.measuresToShow = measuresInfo;
-        return this.phenoBrowserService.getMeasures(datasetId, newSelection, searchTerm);
-      }),
-      map((measure: PhenoMeasure) => {
-        if (this.measuresToShow === null) {
-          return null;
-        }
-        if (measure !== null) {
-          this.measuresToShow.addMeasure(measure);
-        }
-        return this.measuresToShow;
-      }),
-      share()
-    ).subscribe();
+        this.sortBy = '';
+        this.orderBy = '';
+        return this.phenoBrowserService.getMeasuresInfo(datasetId);
+      })
+    ).subscribe(phenoMeasures => {
+      this.measuresToShow = phenoMeasures;
+      this.measuresToShow?.clear();
+      this.measuresChangeTick++;
+      this.allPagesLoaded = false;
+      this.pageCount = 1;
+      this.updateTable();
+    });
 
     this.route.queryParamMap.pipe(
       map(params => [params.get('instrument') || '', params.get('search') || '']),
@@ -125,12 +99,76 @@ export class PhenoBrowserComponent implements OnInit, OnDestroy {
     });
   }
 
+  private updateUrl(searchText: string, instrument: string): void {
+    const queryParamsObject: {
+        instrument: string;
+        search: string;
+    } = {
+      instrument: undefined,
+      search: undefined
+    };
+    if (instrument) {
+      queryParamsObject.instrument = instrument;
+    }
+    if (searchText) {
+      queryParamsObject.search = searchText;
+    }
+    const url = this.router.createUrlTree(['.'], {
+      relativeTo: this.route,
+      queryParams: queryParamsObject
+    }).toString();
+    this.location.replaceState(url);
+  }
+
   private initInstruments(datasetId: string): void {
     this.instruments = this.phenoBrowserService.getInstruments(datasetId);
   }
 
   public emitInstrument(instrument: PhenoInstrument): void {
     this.selectedInstrument$.next(instrument);
+    this.measuresToShow?.clear();
+    this.measuresChangeTick++;
+    this.allPagesLoaded = false;
+    this.pageCount = 1;
+  }
+
+  @HostListener('window:scroll', ['$event'])
+  public updateTableOnScroll(): void {
+    if (this.getPageSubscription.closed && window.scrollY + window.innerHeight + 200 > document.body.scrollHeight) {
+      if (!this.allPagesLoaded) {
+        this.pageCount++;
+        this.updateTable();
+      }
+    }
+  }
+
+  private updateTable(): void {
+    this.getPageSubscription?.unsubscribe();
+    this.getPageSubscription =
+      this.phenoBrowserService.getMeasures(
+        this.pageCount,
+        this.selectedDataset.id,
+        this.selectedInstrument$.value,
+        (this.searchBox.nativeElement as HTMLInputElement).value,
+        this.sortBy,
+        this.orderBy
+      ).subscribe(res => {
+        if (!res.length && this.measuresToShow.measures) {
+          this.allPagesLoaded = true;
+          return;
+        }
+
+        if (this.measuresToShow.measures === null) {
+          this.measuresToShow.measures = [];
+        }
+
+        res.forEach(r => {
+          this.measuresToShow.addMeasure(r);
+        });
+        this.measuresChangeTick++;
+
+        this.getPageSubscription.unsubscribe();
+      });
   }
 
   public downloadMeasures(): void {
@@ -162,6 +200,19 @@ export class PhenoBrowserComponent implements OnInit, OnDestroy {
 
   public search(value: string): void {
     this.input$.next(value);
+    this.measuresToShow?.clear();
+    this.measuresChangeTick++;
+    this.allPagesLoaded = false;
+    this.pageCount = 1;
+  }
+
+  public handleSort(event: { id: string; order: string}): void {
+    this.sortBy = event.id;
+    this.orderBy = event.order;
+    this.measuresToShow.clear();
+    this.measuresChangeTick++;
+    this.pageCount = 1;
+    this.updateTable();
   }
 
   private async waitForSearchBoxToLoad(): Promise<void> {
