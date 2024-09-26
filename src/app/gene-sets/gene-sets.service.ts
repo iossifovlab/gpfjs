@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { GeneSetsCollection, GeneSet, GeneSetCollectionJson, GeneSetJson } from './gene-sets';
+import { Observable, of } from 'rxjs';
+import { GeneSetsCollection, GeneSet, GeneSetJson, GeneSetType } from './gene-sets';
 import { ConfigService } from '../config/config.service';
 import { map } from 'rxjs/operators';
 
@@ -16,14 +16,104 @@ export class GeneSetsService {
   ) {}
 
   public getGeneSetsCollections(): Observable<GeneSetsCollection[]> {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    const headers = { 'Content-Type': 'application/json' };
-    const options = { headers: headers, withCredentials: true };
+    const newCollection = new GeneSetsCollection('autism', 'Autism Gene Sets', []);
+    const types: GeneSetType[] = [];
+    const studyD1 = new GeneSetType('study_d1', 'Study d1', 'phenotype', 'Phenotype', [
+      {
+        id: 'autism',
+        name: 'autism',
+        values: [
+          'affected'
+        ],
+        color: '#ff2121'
+      },
+      {
+        id: 'unaffected',
+        name: 'unaffected',
+        values: [
+          'unaffected'
+        ],
+        color: '#ffffff'
+      }
+    ], null);
 
-    return this.http
-      .get<GeneSetCollectionJson[]>(this.config.baseUrl + this.geneSetsCollectionsUrl, options)
-      .pipe(map(res => GeneSetsCollection.fromJsonArray(res)));
+    const studyD2 = new GeneSetType('study_d2', 'Study d2', 'phenotype', 'Phenotype', [
+      {
+        id: 'autism',
+        name: 'autism',
+        values: [
+          'affected'
+        ],
+        color: '#ff2121'
+      },
+      {
+        id: 'unaffected',
+        name: 'unaffected',
+        values: [
+          'unaffected'
+        ],
+        color: '#ffffff'
+      },
+      {
+        id: 'bipolar',
+        name: 'bipolar',
+        values: [
+          'bipolar'
+        ],
+        color: '#006401'
+      },
+      {
+        id: 'schizophrenia',
+        name: 'schizophrenia',
+        values: [
+          'schizophrenia'
+        ],
+        color: '#00ff00'
+      }
+    ], null);
+
+    const dataset = new GeneSetType('dataset', 'Dataset', '', '', [], [studyD1, studyD2]);
+
+    const singleStudy1 = new GeneSetType('single_study_1', 'Single study 1', 'phenotype', 'Phenotype', [
+      {
+        id: 'autism',
+        name: 'autism',
+        values: [
+          'affected'
+        ],
+        color: '#ff2121'
+      },
+      {
+        id: 'unaffected',
+        name: 'unaffected',
+        values: [
+          'unaffected'
+        ],
+        color: '#ffffff'
+      }
+    ], null);
+
+    types.push(dataset, singleStudy1);
+
+    const newCollection2 = new GeneSetsCollection('denovo', 'Denovo', types);
+
+    const result: GeneSetsCollection[] = [];
+    result.push(newCollection, newCollection2);
+    return of(result);
+
+    // to check if fromJson will work after refactor
+    // return of(mockResponse as GeneSetCollectionJson[]).pipe(map(res => GeneSetsCollection.fromJsonArray(res)));
   }
+
+  // public getGeneSetsCollections(): Observable<GeneSetsCollection[]> {
+  //   // eslint-disable-next-line @typescript-eslint/naming-convention
+  //   const headers = { 'Content-Type': 'application/json' };
+  //   const options = { headers: headers, withCredentials: true };
+
+  //   return this.http
+  //     .get<GeneSetCollectionJson[]>(this.config.baseUrl + this.geneSetsCollectionsUrl, options)
+  //     .pipe(map(res => GeneSetsCollection.fromJsonArray(res)));
+  // }
 
   public getGeneSets(
     selectedGeneSetsCollection: string,

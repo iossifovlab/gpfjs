@@ -32,6 +32,8 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   public modal: NgbModalRef;
   @ViewChild('denovoModal') public denovoModal: ElementRef;
   public studiesList = [];
+  public isExpanded = false;
+  public selectedGeneType: GeneSetType;
 
   public geneSetsQueryChange$ = new Subject<[string, string, object]>();
   private geneSetsResult: Observable<GeneSet[]>;
@@ -61,12 +63,13 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     super.ngOnInit();
 
     this.geneSetsService.getGeneSetsCollections().pipe(
-      switchMap(geneSetsCollections => combineLatest(
+      switchMap(geneSetsCollections => combineLatest([
         of(geneSetsCollections),
         this.store.select(selectGeneSets).pipe(take(1)),
         this.store.select(selectDatasetId).pipe(take(1)),
-      ))
+      ]))
     ).subscribe(([geneSetsCollections, geneSetsState, datasetIdState]) => {
+      console.log(geneSetsCollections)
       let geneSetsCollectionsClone = cloneDeep(geneSetsCollections);
       const geneSetsStateClone = cloneDeep(geneSetsState);
       const datasetIdStateClone = cloneDeep(datasetIdState);
@@ -237,6 +240,18 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     );
   }
 
+  public toggleDatasetCollapse(selectedNodeId: string): void {
+    // this.updateState(selectedNodeId);
+    this.isExpanded = !this.isExpanded;
+    // if (!this.isExpanded) {
+    //   this.emitEventToChild();
+    // }
+  }
+
+  public show(type: GeneSetType): void {
+    this.selectedGeneType = type;
+  }
+
   public isSelectedGeneType(datasetId: string, personSetCollectionId: string, geneType: string): boolean {
     return this.geneSetsLocalState.isSelected(datasetId, personSetCollectionId, geneType);
   }
@@ -256,7 +271,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   }
 
   public set selectedGeneSetsCollection(selectedGeneSetsCollection: GeneSetsCollection) {
-    console.log(selectedGeneSetsCollection);
     this.geneSetsLocalState.geneSetsCollection = selectedGeneSetsCollection;
     this.geneSetsLocalState.geneSet = null;
     this.geneSetsLocalState.geneSetsTypes = Object.create(null);
@@ -270,7 +284,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
 
       this.setSelectedGeneType(
         geneSetType.datasetId, geneSetType.personSetCollectionId,
-        geneSetType.personSetCollectionLegend[0].id as string, true
+        geneSetType.personSetCollectionLegend[0]?.id as string, true
       );
     }
 
