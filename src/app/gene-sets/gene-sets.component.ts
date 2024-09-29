@@ -23,7 +23,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   public geneSetsCollections: Array<GeneSetsCollection>;
   public geneSets: Array<GeneSet>;
   public searchQuery: string;
-  public defaultSelectedDenovoGeneSetId: string[] = [];
+  public defaultSelectedDenovoGeneSetItems: string[] = [];
   public isLoading = true;
   public isDropdownOpen = false;
   @ViewChild('dropdownTrigger') private dropdownTrigger: MatAutocompleteTrigger;
@@ -84,8 +84,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         ) || denovoGeneSetTypes[0];
 
         if (selectedStudyTypes) {
-          this.defaultSelectedDenovoGeneSetId.push(selectedStudyTypes.datasetId +
-            '-' + selectedStudyTypes.personSetCollectionId + '-denovo-geneset');
+          this.defaultSelectedDenovoGeneSetItems.push(selectedStudyTypes.datasetId);
         }
       }
 
@@ -159,9 +158,8 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         const personSetCollectionId = geneType.personSetCollectionId;
         for (const personSet of geneType.personSetCollectionLegend as PersonSet[]) {
           if (geneSetsTypes[datasetId][personSetCollectionId].indexOf(personSet.id) > -1) {
-            const denovoGeneSetId = `${datasetId}-${personSetCollectionId}-denovo-geneset`;
-            if (!this.defaultSelectedDenovoGeneSetId.includes(denovoGeneSetId)) {
-              this.defaultSelectedDenovoGeneSetId.push(denovoGeneSetId);
+            if (!this.defaultSelectedDenovoGeneSetItems.includes(datasetId)) {
+              this.defaultSelectedDenovoGeneSetItems.push(datasetId);
             }
             this.geneSetsLocalState.select(datasetId, personSetCollectionId, personSet.id);
           }
