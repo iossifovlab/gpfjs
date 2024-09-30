@@ -31,9 +31,9 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   @ViewChild('searchSetsBox') private searchBox: ElementRef;
   public modal: NgbModalRef;
   @ViewChild('denovoModal') public denovoModal: ElementRef;
-  public studiesList = [];
-  public isExpanded = false;
+  public studiesList = new Set<string>();
   public selectedGeneType: GeneSetType;
+  public expandedGeneTypes: GeneSetType[] = [];
 
   public geneSetsQueryChange$ = new Subject<[string, string, object]>();
   private geneSetsResult: Observable<GeneSet[]>;
@@ -69,7 +69,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         this.store.select(selectDatasetId).pipe(take(1)),
       ]))
     ).subscribe(([geneSetsCollections, geneSetsState, datasetIdState]) => {
-      console.log(geneSetsCollections)
       let geneSetsCollectionsClone = cloneDeep(geneSetsCollections);
       const geneSetsStateClone = cloneDeep(geneSetsState);
       const datasetIdStateClone = cloneDeep(datasetIdState);
@@ -79,7 +78,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         geneSetCollection => geneSetCollection.name === 'denovo'
       )[0].types;
 
-
       if (!denovoGeneSetTypes.length) {
         geneSetsCollectionsClone = geneSetsCollectionsClone.filter(
           (geneSet) => geneSet.name.toLowerCase().trim() !== 'denovo'
@@ -87,15 +85,20 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
       } else {
         denovoGeneSetTypes.sort((a, b) => a.datasetName > b.datasetName ? 1 : b.datasetName > a.datasetName ? -1 : 0);
 
-        const selectedStudyTypes = denovoGeneSetTypes.find(
+        this.selectedGeneType = denovoGeneSetTypes.find(
           type => type.datasetId === this.selectedDatasetId
         ) || denovoGeneSetTypes[0];
 
-        if (selectedStudyTypes) {
-          this.defaultSelectedDenovoGeneSetId.push(selectedStudyTypes.datasetId +
-            '-' + selectedStudyTypes.personSetCollectionId + '-denovo-geneset');
+        if (this.selectedGeneType) {
+          this.defaultSelectedDenovoGeneSetId.push(this.selectedGeneType.datasetId +
+            '-' + this.selectedGeneType.personSetCollectionId + '-denovo-geneset');
+
+          if (this.selectedGeneType.children) {
+            this.expandedGeneTypes.push(this.selectedGeneType);
+          }
         }
       }
+
 
       this.geneSetsCollections = geneSetsCollectionsClone;
       this.selectedGeneSetsCollection = geneSetsCollectionsClone[0];
@@ -168,9 +171,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         for (const personSet of geneType.personSetCollectionLegend as PersonSet[]) {
           if (geneSetsTypes[datasetId][personSetCollectionId].indexOf(personSet.id) > -1) {
             const denovoGeneSetId = `${datasetId}-${personSetCollectionId}-denovo-geneset`;
-            if (!this.defaultSelectedDenovoGeneSetId.includes(denovoGeneSetId)) {
-              this.defaultSelectedDenovoGeneSetId.push(denovoGeneSetId);
-            }
             this.geneSetsLocalState.select(datasetId, personSetCollectionId, personSet.id);
           }
         }
@@ -230,7 +230,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   }
 
   public openModal(): void {
-    this.studiesList = []; // TO FIX
     if (this.modalService.hasOpenModals()) {
       return;
     }
@@ -240,17 +239,31 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     );
   }
 
-  public toggleDatasetCollapse(selectedNodeId: string): void {
-    // this.updateState(selectedNodeId);
-    this.isExpanded = !this.isExpanded;
-    // if (!this.isExpanded) {
-    //   this.emitEventToChild();
-    // }
+  public toggleDatasetCollapse(selectedType: GeneSetType): void {
+    if(!this.expandedGeneTypes.includes(selectedType)) {
+      this.expandedGeneTypes.push(selectedType);
+    } else {
+      this.hideAll(selectedType)
+    }
+    console.log(this.expandedGeneTypes);
   }
 
-  public show(type: GeneSetType): void {
+  private hideAll(type: GeneSetType): void {
+    if(!type.children) {
+      return;
+    }
+    if(this.expandedGeneTypes.includes(type)) {
+      this.expandedGeneTypes.splice(this.expandedGeneTypes.indexOf(type), 1);
+      type.children.forEach(child => {
+        this.hideAll(child);
+      })
+    }
+  }
+
+  public select(type: GeneSetType): void {
     this.selectedGeneType = type;
   }
+
 
   public isSelectedGeneType(datasetId: string, personSetCollectionId: string, geneType: string): boolean {
     return this.geneSetsLocalState.isSelected(datasetId, personSetCollectionId, geneType);
@@ -260,8 +273,10 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     this.selectedGeneSet = null;
     this.searchQuery = '';
     if (value) {
+      this.studiesList.add(`${datasetId}: ${personSetCollectionId}: ${geneType}`);
       this.geneSetsLocalState.select(datasetId, personSetCollectionId, geneType);
     } else {
+      this.studiesList.delete(`${datasetId}: ${personSetCollectionId}: ${geneType}`);
       this.geneSetsLocalState.deselect(datasetId, personSetCollectionId, geneType);
     }
   }

@@ -72,9 +72,26 @@ export class GeneSetsService {
       }
     ], null);
 
-    const dataset = new GeneSetType('dataset', 'Dataset', '', '', [], [studyD1, studyD2]);
-
     const singleStudy1 = new GeneSetType('single_study_1', 'Single study 1', 'phenotype', 'Phenotype', [
+      {
+        id: 'early_onset_parkinson',
+        name: 'early onset parkinson',
+        values: [
+          'early_onset_parkinson'
+        ],
+        color: '#3d8679'
+      },
+      {
+        id: 'epilepsy',
+        name: 'epilepsy',
+        values: [
+          'epilepsy'
+        ],
+        color: '#ffe502'
+      }
+    ], null);
+
+    const studyD3 = new GeneSetType('study_d3', 'Study d3', 'phenotype', 'Phenotype', [
       {
         id: 'autism',
         name: 'autism',
@@ -93,8 +110,80 @@ export class GeneSetsService {
       }
     ], null);
 
-    types.push(dataset, singleStudy1);
+    const studyD4 = new GeneSetType('study_d4', 'Study d4', 'phenotype', 'Phenotype', [
+      {
+        "id": "pdd_nos_atypical_autism",
+        "name": "PDD-NOS atypical autism",
+        "values": [
+            "pdd-nos-atypical-autism"
+        ],
+        "color": "#0200a2"
+      }
+    ], null);
 
+    const datasetInner = new GeneSetType('dataset_inner', 'Dataset inner', 'phenotype', 'Phenotype', [{
+      id: 'autism',
+      name: 'autism',
+      values: [
+        'affected'
+      ],
+      color: '#ff2121'
+    },
+    {
+      id: 'unaffected',
+      name: 'unaffected',
+      values: [
+        'unaffected'
+      ],
+      color: '#ffffff'
+    }], [studyD3]);
+
+    const datasetParallel = new GeneSetType('dataset_parallel', 'Dataset parallel', 'phenotype', 'Phenotype', [
+    {
+      "id": "pdd_nos_atypical_autism",
+      "name": "PDD-NOS atypical autism",
+      "values": [
+          "pdd-nos-atypical-autism"
+      ],
+      "color": "#0200a2"
+    }], [studyD4]);
+
+
+    const dataset = new GeneSetType('dataset', 'Dataset', 'phenotype', 'Phenotype', [{
+      id: 'autism',
+      name: 'autism',
+      values: [
+        'affected'
+      ],
+      color: '#ff2121'
+    },
+    {
+      id: 'unaffected',
+      name: 'unaffected',
+      values: [
+        'unaffected'
+      ],
+      color: '#ffffff'
+    },
+    {
+      id: 'bipolar',
+      name: 'bipolar',
+      values: [
+        'bipolar'
+      ],
+      color: '#006401'
+    },
+    {
+      id: 'schizophrenia',
+      name: 'schizophrenia',
+      values: [
+        'schizophrenia'
+      ],
+      color: '#00ff00'
+    }
+  ], [studyD1, studyD2, datasetInner]);
+
+    types.push(dataset, singleStudy1, datasetParallel);
     const newCollection2 = new GeneSetsCollection('denovo', 'Denovo', types);
 
     const result: GeneSetsCollection[] = [];
