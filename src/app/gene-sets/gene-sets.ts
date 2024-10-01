@@ -1,3 +1,5 @@
+import { PersonSetCollection } from "app/datasets/datasets";
+
 export interface GeneSetJson {
   name: string;
   count: number;
@@ -65,17 +67,17 @@ export class GeneSetType {
 
   public static fromJson(json: GeneSetType): GeneSetType {
     return new GeneSetType(
-      json.datasetId, json.datasetName, json.personSetCollectionId,
-      json.personSetCollectionName, json.personSetCollectionLegend, json.children
+      json.datasetId, json.datasetName, json.personSetCollections, json.children
     );
   }
 
   public constructor(
     public readonly datasetId: string,
     public readonly datasetName: string,
-    public readonly personSetCollectionId: string,
-    public readonly personSetCollectionName: string,
-    public readonly personSetCollectionLegend: Array<any>, // TO FIX any
+    // public readonly personSetCollectionId: string,
+    // public readonly personSetCollectionName: string,
+    // public readonly personSetCollectionLegend: Array<any>, // TO FIX any
+    public readonly personSetCollections: PersonSetCollection[],
     public readonly children: GeneSetType[],
   ) { }
 }

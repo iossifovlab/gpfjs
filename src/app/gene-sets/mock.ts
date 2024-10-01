@@ -1,99 +1,162 @@
 const hierarchy = [{
-  datasetId: 'dataset',
-  datasetName: 'Dataset',
-  personSetCollectionId: '',
-  personSetCollectionName: '',
-  personSetCollectionLegend: [],
+  datasetId: 'SPARK_genotypes',
+  datasetName: 'SPARK Genotypes',
+  personSetCollections: [
+    {
+      personSetCollectionId: 'phenotype',
+      personSetCollectionName: 'Phenotype',
+      personSetCollectionLegend: [
+        {
+          id: 'autism',
+          name: 'autism',
+          values: [
+            'affected'
+          ],
+          color: '#ff2121'
+        },
+        {
+          id: 'unaffected',
+          name: 'unaffected',
+          values: [
+            'unaffected'
+          ],
+          color: '#ffffff'
+        }
+      ]
+    }
+  ]
+  ,
   children: [
     {
-      datasetId: 'study_d1',
-      datasetName: 'Study d1',
-      personSetCollectionId: 'phenotype',
-      personSetCollectionName: 'Phenotype',
-      personSetCollectionLegend: [
+      datasetId: 'SFARI_SPARK_WES_1_CSHL',
+      datasetName: 'SPARK CSHL WES batch 1',
+      personSetCollections: [
         {
-          id: 'autism',
-          name: 'autism',
-          values: [
-            'affected'
-          ],
-          color: '#ff2121'
-        },
-        {
-          id: 'unaffected',
-          name: 'unaffected',
-          values: [
-            'unaffected'
-          ],
-          color: '#ffffff'
+          personSetCollectionId: 'phenotype',
+          personSetCollectionName: 'Phenotype',
+          personSetCollectionLegend: [
+            {
+              id: 'autism',
+              name: 'autism',
+              values: [
+                'affected'
+              ],
+              color: '#ff2121'
+            },
+            {
+              id: 'unaffected',
+              name: 'unaffected',
+              values: [
+                'unaffected'
+              ],
+              color: '#ffffff'
+            }
+        ],
         }
       ],
       children: null
     },
     {
-      datasetId: 'study_d2',
-      datasetName: 'Study d2',
-      personSetCollectionId: 'phenotype',
-      personSetCollectionName: 'Phenotype',
-      personSetCollectionLegend: [
+      datasetId: 'iWES_v2_genotypes',
+      datasetName: 'SPARK Consortium iWES v2',
+      personSetCollections: [
         {
-          id: 'autism',
-          name: 'autism',
-          values: [
-            'affected'
-          ],
-          color: '#ff2121'
-        },
-        {
-          id: 'unaffected',
-          name: 'unaffected',
-          values: [
-            'unaffected'
-          ],
-          color: '#ffffff'
-        },
-        {
-          id: 'bipolar',
-          name: 'bipolar',
-          values: [
-            'bipolar'
-          ],
-          color: '#006401'
-        },
-        {
-          id: 'schizophrenia',
-          name: 'schizophrenia',
-          values: [
-            'schizophrenia'
-          ],
-          color: '#00ff00'
+        personSetCollectionId: '',
+        personSetCollectionName: '',
+        personSetCollectionLegend: [],
         }
       ],
       children: null
-    },
+    }
   ],
 },
 {
-  datasetId: 'single_study_1',
-  datasetName: 'Single study 1',
-  personSetCollectionId: 'phenotype',
-  personSetCollectionName: 'Phenotype',
-  personSetCollectionLegend: [
+  datasetId: 'SFARI_SVIP_WES_1_liftover',
+  datasetName: 'Simons Searchlight WES liftover',
+  PersonSetCollections: [
     {
-      id: 'autism',
-      name: 'autism',
-      values: [
-        'affected'
-      ],
-      color: '#ff2121'
+      personSetCollectionId: 'phenotype',
+      personSetCollectionName: 'Phenotype',
+      personSetCollectionLegend: [
+        {
+          "id": "aspergers_disorder",
+          "name": "aspergers disorder",
+          "values": [
+              "aspergers-disorder"
+          ],
+          "color": "#9d8c00"
+      },
+      {
+          "id": "autistic_disorder",
+          "name": "autistic disorder",
+          "values": [
+              "autistic-disorder"
+          ],
+          "color": "#ff2121"
+      },
+      {
+          "id": "non_spectrum_dx",
+          "name": "non-spectrum dx",
+          "values": [
+              "non-spectrum-dx"
+          ],
+          "color": "#aca8cf"
+      },
+      {
+          "id": "pdd_nos_atypical_autism",
+          "name": "PDD-NOS atypical autism",
+          "values": [
+              "pdd-nos-atypical-autism"
+          ],
+          "color": "#0200a2"
+      },
+      {
+          "id": "no_diagnosis",
+          "name": "no diagnosis",
+          "values": [
+              "no-diagnosis"
+          ],
+          "color": "#ffffff"
+      }
+      ]
     },
     {
-      id: 'unaffected',
-      name: 'unaffected',
-      values: [
-        'unaffected'
-      ],
-      color: '#ffffff'
+      personSetCollectionId: 'status_16p',
+      personSetCollectionName: '16p status',
+      personSetCollectionLegend: [
+        {
+          "id": "deletion",
+          "name": "deletion",
+          "values": [
+              "deletion"
+          ],
+          "color": "#ff2121"
+      },
+      {
+          "id": "duplication",
+          "name": "duplication",
+          "values": [
+              "duplication"
+          ],
+          "color": "#ac6bad"
+      },
+      {
+          "id": "triplication",
+          "name": "triplication",
+          "values": [
+              "triplication"
+          ],
+          "color": "#ffe502"
+      },
+      {
+          "id": "negative",
+          "name": "negative",
+          "values": [
+              "negative"
+          ],
+          "color": "#ffffff"
+      }
+      ]
     }
   ],
   children: null
