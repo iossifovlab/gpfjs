@@ -7,7 +7,6 @@ import { ValidateNested } from 'class-validator';
 import { Store } from '@ngrx/store';
 import { catchError, debounceTime, distinctUntilChanged, switchMap, take } from 'rxjs/operators';
 import { environment } from 'environments/environment';
-import { PersonSet } from 'app/datasets/datasets';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { selectDatasetId } from 'app/datasets/datasets.state';
 import { ComponentValidator } from 'app/common/component-validator';
@@ -24,7 +23,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   public geneSetsCollections: Array<GeneSetsCollection>;
   public geneSets: Array<GeneSet>;
   public searchQuery: string;
-  // public defaultSelectedDenovoGeneSetId: string[] = [];
   public isLoading = true;
   public isDropdownOpen = false;
   @ViewChild('dropdownTrigger') private dropdownTrigger: MatAutocompleteTrigger;
@@ -89,13 +87,8 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
           type => type.datasetId === this.selectedDatasetId
         ) || denovoGeneSetTypes[0];
 
-        if (this.selectedGeneType) {
-          // this.defaultSelectedDenovoGeneSetId.push(this.selectedGeneType.datasetId +
-          //   '-' + this.selectedGeneType.personSetCollections[0].id + '-denovo-geneset');
-
-          if (this.selectedGeneType.children) {
-            this.expandedGeneTypes.push(this.selectedGeneType);
-          }
+        if (this.selectedGeneType && this.selectedGeneType.children) {
+          this.expandedGeneTypes.push(this.selectedGeneType);
         }
       }
 
@@ -168,9 +161,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
           restoredGeneTypes.push(geneType);
         }
         restoredGeneTypes.push(...this.restoreAll(geneType, geneSetsTypes));
-      }
-        //  && geneType.personSetCollections in geneSetsTypes[geneType.datasetId];
-      );
+      });
 
     if (restoredGeneTypes.length !== 0) {
       this.geneSetsLocalState.geneSetsTypes = Object.create(null);
@@ -179,11 +170,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         geneType.personSetCollections.forEach(collection => {
           const personSetCollectionId = collection.id;
           for (const personSet of collection.domain) {
-            if (geneSetsTypes[datasetId][personSetCollectionId].indexOf(personSet.id) > -1) {
-              // const denovoGeneSetId = `${datasetId}-${personSetCollectionId}-denovo-geneset`;
-              // if (!this.defaultSelectedDenovoGeneSetId.includes(denovoGeneSetId)) {
-              //   this.defaultSelectedDenovoGeneSetId.push(denovoGeneSetId);
-              // }  
+            if (geneSetsTypes[datasetId][personSetCollectionId].indexOf(personSet.id) > -1) { 
               this.studiesList.add(`${datasetId}: ${personSetCollectionId}: ${personSet.id}`);
               this.geneSetsLocalState.select(datasetId, personSetCollectionId, personSet.id);
             }
@@ -296,6 +283,10 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     this.selectedGeneType = type;
   }
 
+  public removeFromList(study: string): void {
+    const removedStudyInfo = study.split(': ');
+    this.setSelectedGeneType(removedStudyInfo[0], removedStudyInfo[1], removedStudyInfo[2], false);
+  }
 
   public isSelectedGeneType(datasetId: string, personSetCollectionId: string, geneType: string): boolean {
     return this.geneSetsLocalState.isSelected(datasetId, personSetCollectionId, geneType);

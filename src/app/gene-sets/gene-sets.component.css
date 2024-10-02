@@ -101,16 +101,15 @@
   padding-top: 15px;
   padding-left: 25px;
   overflow-y: auto;
-
   display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
+  flex-flow: column wrap;
   column-gap: 30px;
-  /* flex-basis: 60%; */
 }
 
 #modal-study-list {
   border-top: 2px solid rgb(197, 197, 197);
+  max-height: 40%;
+  overflow-y: auto;
 }
 
 #selected-studies-list {
@@ -121,4 +120,17 @@
   margin-left: 10px;
   padding-left: 10px;
   border-left: 1px solid #e4e4e4;
+}
+
+.remove-study {
+  border: none;
+  background-color: transparent;
+}
+
+.remove-study > span {
+  font-size: 22px;
+}
+
+.study {
+  display: flex;
 }
