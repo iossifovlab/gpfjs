@@ -221,3 +221,14 @@ h5 {
   width: 35px;
   height: 30px;
 }
+
+.disabled-download {
+  opacity: 35%;
+  pointer-events: none;
+  user-select: none;
+}
+
+.disabled-pedigrees {
+  pointer-events: none;
+  user-select: none;
+}
