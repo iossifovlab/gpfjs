@@ -1,11 +1,11 @@
 import { GeneSetsLocalState } from './gene-sets-local-state';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { GeneSetsService } from './gene-sets.service';
-import { GeneSetsCollection, GeneSet, GeneSetType } from './gene-sets';
+import { GeneSetsCollection, GeneSet, GeneSetTypeNode, GeneSetType } from './gene-sets';
 import { Subject, Observable, combineLatest, of } from 'rxjs';
 import { ValidateNested } from 'class-validator';
 import { Store } from '@ngrx/store';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, take } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, take } from 'rxjs/operators';
 import { environment } from 'environments/environment';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { selectDatasetId } from 'app/datasets/datasets.state';
@@ -13,6 +13,8 @@ import { ComponentValidator } from 'app/common/component-validator';
 import { selectGeneSets, setGeneSetsValues } from './gene-sets.state';
 import { cloneDeep } from 'lodash';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { DatasetsTreeService } from 'app/datasets/datasets-tree.service';
+import { DatasetHierarchy } from 'app/datasets/datasets';
 
 @Component({
   selector: 'gpf-gene-sets',
@@ -30,8 +32,9 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
   public modal: NgbModalRef;
   @ViewChild('denovoModal') public denovoModal: ElementRef;
   public studiesList = new Set<string>();
-  public selectedGeneType: GeneSetType;
-  public expandedGeneTypes: GeneSetType[] = [];
+  public selectedGeneType: GeneSetTypeNode;
+  public expandedGeneTypes: GeneSetTypeNode[] = [];
+  public denovoGeneSetTypes: GeneSetTypeNode[] = [];
 
   public geneSetsQueryChange$ = new Subject<[string, string, object]>();
   private geneSetsResult: Observable<GeneSet[]>;
@@ -52,6 +55,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     protected store: Store,
     private geneSetsService: GeneSetsService,
     public modalService: NgbModal,
+    private datasetsTreeService: DatasetsTreeService,
   ) {
     super(store, 'geneSets', selectGeneSets);
   }
@@ -60,43 +64,48 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     this.geneSetsLoaded = null;
     super.ngOnInit();
 
-    this.geneSetsService.getGeneSetsCollections().pipe(
-      switchMap(geneSetsCollections => combineLatest([
-        of(geneSetsCollections),
-        this.store.select(selectGeneSets).pipe(take(1)),
-        this.store.select(selectDatasetId).pipe(take(1)),
-      ]))
-    ).subscribe(([geneSetsCollections, geneSetsState, datasetIdState]) => {
+
+    combineLatest([
+      this.datasetsTreeService.getDatasetHierarchy(),
+      this.geneSetsService.getDenovoGeneSets(),
+      this.store.select(selectDatasetId).pipe(take(1)),
+    ]).pipe(
+      switchMap(([hierarchies, denovoGeneSets, datasetIdState]) => {
+        const datasetIdStateClone = cloneDeep(datasetIdState);
+        this.selectedDatasetId = datasetIdStateClone;
+
+        const denovoTypesHierarchy: GeneSetTypeNode[] = [];
+        hierarchies.forEach(hierarchy => denovoTypesHierarchy.push(this.createDenovoGeneSetTypeHierarchy(hierarchy, denovoGeneSets)));
+        return combineLatest([
+          of(denovoTypesHierarchy),
+          this.geneSetsService.getGeneSetsCollections(),
+          this.store.select(selectGeneSets).pipe(take(1)),
+          of(denovoGeneSets)
+        ])
+      })
+    ).subscribe(([denovoGeneSetTypesHierarchy, geneSetsCollections, geneSetsState, denovoGeneSets]) => {
       let geneSetsCollectionsClone = cloneDeep(geneSetsCollections);
       const geneSetsStateClone = cloneDeep(geneSetsState);
-      const datasetIdStateClone = cloneDeep(datasetIdState);
-      this.selectedDatasetId = datasetIdStateClone;
 
-      const denovoGeneSetTypes = geneSetsCollectionsClone.filter(
-        geneSetCollection => geneSetCollection.name === 'denovo'
-      )[0].types;
+      this.denovoGeneSetTypes = denovoGeneSetTypesHierarchy;
 
-      if (!denovoGeneSetTypes.length) {
-        geneSetsCollectionsClone = geneSetsCollectionsClone.filter(
-          (geneSet) => geneSet.name.toLowerCase().trim() !== 'denovo'
-        );
-      } else {
-        denovoGeneSetTypes.sort((a, b) => a.datasetName > b.datasetName ? 1 : b.datasetName > a.datasetName ? -1 : 0);
-
-        this.selectedGeneType = denovoGeneSetTypes.find(
-          type => type.datasetId === this.selectedDatasetId
-        ) || denovoGeneSetTypes[0];
-
-        if (this.selectedGeneType && this.selectedGeneType.children) {
-          this.expandedGeneTypes.push(this.selectedGeneType);
-        }
+      if (this.denovoGeneSetTypes.length) {
+        this.selectedGeneType = this.selectedGeneType || this.denovoGeneSetTypes[0];
+        //  if (this.selectedGeneType && this.selectedGeneType.children.length) {
+        //   this.expandedGeneTypes.push(this.selectedGeneType);
+        // }
       }
-
 
       this.geneSetsCollections = geneSetsCollectionsClone;
       this.selectedGeneSetsCollection = geneSetsCollectionsClone[0];
+
       if (geneSetsStateClone.geneSet) {
         this.restoreState(geneSetsStateClone);
+      } else {
+        const type = denovoGeneSets.find(geneSet => geneSet.datasetId === this.selectedDatasetId);
+        if(type) {
+          this.setSelectedGeneType(type.datasetId, type.personSetCollections[0].personSetCollectionId, type.personSetCollections[0].personSetCollectionLegend[0].id, true)
+        }
       }
       this.geneSetsLoaded = geneSetsCollectionsClone.length;
     });
@@ -104,7 +113,9 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     this.geneSetsResult = this.geneSetsQueryChange$.pipe(
       distinctUntilChanged(),
       debounceTime(300),
-      switchMap(term => this.geneSetsService.getGeneSets(term[0], term[1], term[2])),
+      switchMap(term => {
+        return this.geneSetsService.getGeneSets(term[0], term[1], term[2]);
+      }),
       catchError(error => {
         console.warn(error);
         return of(null);
@@ -129,8 +140,32 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     });
   }
 
+  private createDenovoGeneSetTypeHierarchy(hierarchy: DatasetHierarchy, denovoGeneSetsTypes: GeneSetType[]): GeneSetTypeNode {
+    if (!hierarchy) {
+      return null;
+    }
+
+    let children: GeneSetTypeNode[] = [];
+    if (hierarchy.children) {
+      children = hierarchy.children
+        .map(child => this.createDenovoGeneSetTypeHierarchy(child, denovoGeneSetsTypes));
+    }
+
+    const newGeneSetTypeNode = new GeneSetTypeNode(
+      hierarchy.id,
+      hierarchy.name,
+      denovoGeneSetsTypes.find(type => type.datasetId === hierarchy.id)?.personSetCollections || [],
+      children
+    );
+  
+    // if(hierarchy.id === this.selectedDatasetId) {
+    //   this.selectedGeneType = newGeneSetTypeNode;
+    // }
+    return newGeneSetTypeNode;
+  }
+
   private restoreState(state: {
-    geneSetsTypes: GeneSetType[];
+    geneSetsTypes: GeneSetTypeNode[];
     geneSetsCollection: GeneSetsCollection;
     geneSet: GeneSet;
 }): void {
@@ -152,9 +187,9 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     }
   }
 
-  private restoreGeneTypes(geneSetsTypes: GeneSetType[], geneSetCollection: GeneSetsCollection): void {
+  private restoreGeneTypes(geneSetsTypes: GeneSetTypeNode[], geneSetCollection: GeneSetsCollection): void {
     this.studiesList.clear();
-    let restoredGeneTypes = [];
+    let restoredGeneTypes:GeneSetTypeNode[] = [];
     geneSetCollection.types
       .forEach(geneType => {
         if(geneType.datasetId in geneSetsTypes) {
@@ -162,17 +197,16 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         }
         restoredGeneTypes.push(...this.restoreAll(geneType, geneSetsTypes));
       });
-
     if (restoredGeneTypes.length !== 0) {
       this.geneSetsLocalState.geneSetsTypes = Object.create(null);
       for (const geneType of restoredGeneTypes) {
         const datasetId = geneType.datasetId;
         geneType.personSetCollections.forEach(collection => {
-          const personSetCollectionId = collection.id;
-          for (const personSet of collection.domain) {
+          const personSetCollectionId = collection.personSetCollectionId;
+          for (const personSet of collection.personSetCollectionLegend) {
             if (geneSetsTypes[datasetId][personSetCollectionId].indexOf(personSet.id) > -1) { 
               this.studiesList.add(`${datasetId}: ${personSetCollectionId}: ${personSet.id}`);
-              this.geneSetsLocalState.select(datasetId, personSetCollectionId, personSet.id);
+              this.setSelectedGeneType(datasetId, personSetCollectionId, personSet.id, true);
             }
           }
         })
@@ -180,7 +214,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     }
   }
 
-  private restoreAll(type: GeneSetType, geneSetsTypes: GeneSetType[]): GeneSetType[] {
+  private restoreAll(type: GeneSetTypeNode, geneSetsTypes: GeneSetTypeNode[]): GeneSetTypeNode[] {
     let restoredChildren = [];
     if(!(type.datasetId in geneSetsTypes) && !type.children) {
       return restoredChildren;
@@ -236,7 +270,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
 
     this.isLoading = true;
     this.geneSetsQueryChange$.next(
-      [this.selectedGeneSetsCollection.name, this.searchQuery, this.geneSetsLocalState.geneSetsTypes as GeneSetType[]]
+      [this.selectedGeneSetsCollection.name, this.searchQuery, this.geneSetsLocalState.geneSetsTypes as GeneSetTypeNode[]]
     );
   }
 
@@ -259,7 +293,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     );
   }
 
-  public toggleDatasetCollapse(selectedType: GeneSetType): void {
+  public toggleDatasetCollapse(selectedType: GeneSetTypeNode): void {
     if(!this.expandedGeneTypes.includes(selectedType)) {
       this.expandedGeneTypes.push(selectedType);
     } else {
@@ -267,8 +301,8 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     }
   }
 
-  private hideAll(type: GeneSetType): void {
-    if(!type.children) {
+  private hideAll(type: GeneSetTypeNode): void {
+    if(!type.children.length) {
       return;
     }
     if(this.expandedGeneTypes.includes(type)) {
@@ -279,7 +313,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     }
   }
 
-  public select(type: GeneSetType): void {
+  public select(type: GeneSetTypeNode): void {
     this.selectedGeneType = type;
   }
 
@@ -315,14 +349,15 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     this.geneSets = [];
     this.searchQuery = '';
 
+    if (selectedGeneSetsCollection.name === 'denovo' && this.selectedGeneType && this.selectedGeneType.personSetCollections.length) {
     if (selectedGeneSetsCollection?.types.length > 0) {
       const geneSetType = selectedGeneSetsCollection.types.find(
         genesetType => genesetType.datasetId === this.selectedDatasetId
       ) || selectedGeneSetsCollection.types[0];
 
       this.setSelectedGeneType(
-        geneSetType.datasetId, geneSetType.personSetCollections[0].id,
-        geneSetType.personSetCollections[0].domain[0]?.id as string, true
+        this.selectedGeneType.datasetId, this.selectedGeneType.personSetCollections[0].personSetCollectionId,
+        this.selectedGeneType.personSetCollections[0].personSetCollectionLegend[0]?.id as string, true
       );
     }
 

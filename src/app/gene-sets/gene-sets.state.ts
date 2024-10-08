@@ -1,10 +1,10 @@
 import { createReducer, createAction, on, props, createFeatureSelector } from '@ngrx/store';
 import { cloneDeep } from 'lodash';
-import { GeneSet, GeneSetsCollection, GeneSetType } from './gene-sets';
+import { GeneSet, GeneSetsCollection, GeneSetTypeNode } from './gene-sets';
 import { reset } from 'app/users/state-actions';
 
 export interface GeneSetsState {
-  geneSetsTypes: GeneSetType[];
+  geneSetsTypes: GeneSetTypeNode[];
   geneSetsCollection: GeneSetsCollection;
   geneSet: GeneSet;
 }
