@@ -1,4 +1,4 @@
-import { PersonSet, PersonSetCollection } from "app/datasets/datasets";
+import { PersonSet } from 'app/datasets/datasets';
 
 export interface GeneSetJson {
   name: string;
@@ -93,5 +93,19 @@ export class GeneSetTypeNode {
     public readonly datasetName: string,
     public readonly personSetCollections: DenovoPersonSetCollection[],
     public readonly children: GeneSetTypeNode[],
+  ) { }
+}
+
+export class SelectedDenovoTypes {
+  public constructor(
+    public datasetId: string,
+    public collections: SelectedPersonSetCollections[],
+  ) { }
+}
+
+export class SelectedPersonSetCollections {
+  public constructor(
+    public personSetId: string,
+    public types: string[],
   ) { }
 }
