@@ -71,7 +71,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     this.geneSetsLoaded = null;
     super.ngOnInit();
 
-
     combineLatest([
       this.datasetsTreeService.getDatasetHierarchy(),
       this.geneSetsService.getDenovoGeneSets(),
@@ -96,9 +95,8 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
           of(denovoGeneSets)
         ]);
       })
-    ).subscribe(([denovoGeneSetTypesHierarchy, geneSetsCollections, geneSetsState, denovoGeneSets]) => { // TO FIX
+    ).subscribe(([denovoGeneSetTypesHierarchy, geneSetsCollections, geneSetsState]) => {
       const geneSetsCollectionsClone = cloneDeep(geneSetsCollections);
-      // const geneSetsStateClone = cloneDeep(geneSetsState);
 
       this.denovoGeneSetTypes = denovoGeneSetTypesHierarchy;
 
@@ -114,11 +112,6 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
 
       if (geneSetsState.geneSet) {
         this.restoreState(geneSetsState);
-      } else { // TO FIX
-        // const type = denovoGeneSets.find(geneSet => geneSet.datasetId === this.selectedDatasetId);
-        // if (type) {
-        //   this.setSelectedGeneType(type.datasetId, type.personSetCollections[0].personSetCollectionId, type.personSetCollections[0].personSetCollectionLegend[0].id, true)
-        // }
       }
       this.geneSetsLoaded = geneSetsCollectionsClone.length;
     });
@@ -189,7 +182,7 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
         if (geneSetCollection.name === state.geneSetsCollection.name) {
           this.selectedGeneSetsCollection = geneSetCollection;
           if (state.geneSetsTypes) {
-            this.restoreGeneTypes(state.geneSetsTypes, geneSetCollection);
+            this.restoreGeneTypes(state.geneSetsTypes);
           }
           // the gene set must be restored last, as that triggers the state update
           // otherwise, sharing a restored state won't work properly
@@ -202,48 +195,15 @@ export class GeneSetsComponent extends ComponentValidator implements OnInit {
     }
   }
 
-  private restoreGeneTypes(geneSetsTypes: SelectedDenovoTypes[], geneSetCollection: GeneSetsCollection): void {
+  private restoreGeneTypes(geneSetsTypes: SelectedDenovoTypes[]): void {
     this.studiesList.clear();
-    const restoredGeneTypes: GeneSetTypeNode[] = [];
-    geneSetCollection.types
-      .forEach(geneType => {
-        if (geneType.datasetId in geneSetsTypes) {
-          restoredGeneTypes.push(geneType);
-        }
-        restoredGeneTypes.push(...this.restoreAll(geneType, geneSetsTypes));
-      });
-    if (restoredGeneTypes.length !== 0) {
-      this.currentGeneSetsTypes = new Array<SelectedDenovoTypes>();
-      for (const geneType of restoredGeneTypes) {
-        const datasetId = geneType.datasetId;
-        geneType.personSetCollections.forEach(collection => {
-          const personSetCollectionId = collection.personSetCollectionId;
-          for (const personSet of collection.personSetCollectionLegend) {
-            if (geneSetsTypes[datasetId][personSetCollectionId].indexOf(personSet.id) > -1) { // TO FIX
-              this.setSelectedGeneType(datasetId, personSetCollectionId, personSet.id, true);
-            }
-          }
-        });
-      }
-    }
-  }
-
-  private restoreAll(type: GeneSetTypeNode, geneSetsTypes: SelectedDenovoTypes[]): GeneSetTypeNode[] {
-    let restoredChildren: GeneSetTypeNode[] = [];
-    if (!(type.datasetId in geneSetsTypes) && !type.children) {
-      return restoredChildren;
-    }
-
-    if (type.datasetId in geneSetsTypes) {
-      restoredChildren.push(type);
-    }
-
-    if (type.children) {
-      type.children.forEach(child => {
-        restoredChildren = restoredChildren.concat(this.restoreAll(child, geneSetsTypes));
-      });
-    }
-    return restoredChildren;
+    geneSetsTypes.forEach(type => {
+      type.collections.forEach(collection => {
+        collection.types.forEach(personSetId => {
+          this.setSelectedGeneType(type.datasetId, collection.personSetId, personSetId, true);
+        })
+      })
+    })
   }
 
   public reset(): void {
