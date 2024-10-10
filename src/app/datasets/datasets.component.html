@@ -1,4 +1,16 @@
 <div *ngIf="selectedDataset" class="content">
+  <div
+    *ngIf="registerAlertVisible"
+    id="register-alert">
+    <span>nd neurodevelopmental disorders (NDDs). Currently, de novo variants are one of the most significant risk factors for</span>
+    <span
+      class="material-symbols-outlined search-clear-icon"
+      (click)="true"
+      style="font-size: 20px; margin-right: 6px;"
+      >close</span
+    >
+  </div>
+
   <nav class="navbar navbar-custom navbar-toggleable-md navbar-expand-lg navbar-light bg-light">
     <ul class="navbar-nav">
       <li class="nav-item">
@@ -63,14 +75,6 @@
       </li>
     </ul>
   </nav>
-
-  <div
-    *ngIf="registerAlertVisible && permissionDeniedPrompt"
-    class="alert alert-danger"
-    style="margin: 10px"
-    id="permission-denied-prompt">
-    <markdown [data]="permissionDeniedPrompt"></markdown>
-  </div>
 
   <router-outlet
     *ngIf="selectedDataset.accessRights
