@@ -410,11 +410,13 @@ describe('HomeComponent', () => {
 
 
   it('should collect all studies', () => {
-    component.collectAllStudies(datasetsHierarchy[0]);
-    expect(component.allStudies).toStrictEqual(new Set(['d1', 'd1Inner']));
-
     component.collectAllStudies(datasetsHierarchy[1]);
-    expect(component.allStudies).toStrictEqual(new Set(['d1', 'd1Inner', 'd2']));
+    expect(component.allStudies).toStrictEqual(new Set(['d2']));
+
+    component.collectAllStudies(datasetsHierarchy[2]);
+    expect(component.allStudies).toStrictEqual(
+      new Set(['d2', 'd3', 'd3Inner1', 'd3Inner2', 'd3InnerInner1', 'd3InnerInner2'])
+    );
   });
 
   it('should check if dataset has visible children', () => {
