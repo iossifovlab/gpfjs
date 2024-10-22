@@ -117,7 +117,7 @@ const datasetsHierarchy = [
   new DatasetHierarchy('d1', 'dataset1Name', true, [
     new DatasetHierarchy('d1Inner', 'dataset1InnerName', true, [])
   ]),
-  new DatasetHierarchy('d2', 'dataset2Name', true, []),
+  new DatasetHierarchy('d2', 'dataset2Name', true, null),
   new DatasetHierarchy('d3', 'dataset3Name', true, [
     new DatasetHierarchy('d3Inner1', 'dataset3InnerName1', true, []),
     new DatasetHierarchy('d3Inner2', 'dataset3InnerName2', true, [
@@ -135,7 +135,7 @@ class MockDatasetsTreeService {
 
 class MockDatasetsService {
   public getVisibleDatasets(): Observable<string[]> {
-    return of(['d1']);
+    return of(['d1', 'd1Inner']);
   }
 
   public getDatasetDescription(dataseId: string): Observable<string> {
@@ -217,22 +217,6 @@ describe('HomeComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should set other data', () => {
-    const getGpfVersionSpy = jest.spyOn(mockInstanceService, 'getGpfVersion');
-    const getHomeDescriptionSpy = jest.spyOn(mockInstanceService, 'getHomeDescription');
-    const getConfigSpy = jest.spyOn(mockGeneProfilesService, 'getConfig');
-
-    component.ngOnInit();
-
-    expect(getGpfVersionSpy).toHaveBeenCalledTimes(1);
-    expect(getHomeDescriptionSpy).toHaveBeenCalledTimes(1);
-    expect(getConfigSpy).toHaveBeenCalledTimes(1);
-
-    expect(component.gpfVersion).toBe('version 1');
-    expect(component.geneProfilesConfig).toStrictEqual(config);
-    expect(component.homeDescription).toBe('Home page description');
-  });
-
   it('should set search results when searching gene', fakeAsync(() => {
     const getGeneSymbolsSpy = jest.spyOn(mockGeneProfilesTableService, 'getGeneSymbols');
 
@@ -262,8 +246,24 @@ describe('HomeComponent', () => {
     expect(attachDatasetDescriptionSpy).toHaveBeenCalledTimes(8);
 
     expect(component.content).toBe(datasetsHierarchy);
-    expect(component.visibleDatasets).toStrictEqual(['d1']);
-    expect(component.datasets).toStrictEqual(['d1']);
+    expect(component.visibleDatasets).toStrictEqual(['d1', 'd1Inner']);
+    expect(component.datasets).toStrictEqual(['d1', 'd1Inner']);
+  });
+
+  it('should set other data', () => {
+    const getGpfVersionSpy = jest.spyOn(mockInstanceService, 'getGpfVersion');
+    const getHomeDescriptionSpy = jest.spyOn(mockInstanceService, 'getHomeDescription');
+    const getConfigSpy = jest.spyOn(mockGeneProfilesService, 'getConfig');
+
+    component.ngOnInit();
+
+    expect(getGpfVersionSpy).toHaveBeenCalledTimes(1);
+    expect(getHomeDescriptionSpy).toHaveBeenCalledTimes(1);
+    expect(getConfigSpy).toHaveBeenCalledTimes(1);
+
+    expect(component.gpfVersion).toBe('version 1');
+    expect(component.geneProfilesConfig).toStrictEqual(config);
+    expect(component.homeDescription).toBe('Home page description');
   });
 
   it('should open sinle view', () => {
