@@ -7,6 +7,7 @@ import { User, UserInfo } from './users';
 import { catchError, map, tap, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../auth.service';
 import { FederationCredential, FederationJson } from 'app/federation-credentials/federation-credentials';
+import { LocationStrategy } from '@angular/common';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +30,7 @@ export class UsersService {
     private config: ConfigService,
     private cookieService: CookieService,
     private authService: AuthService,
+    private locationStrategy: LocationStrategy
   ) { }
 
   public logout(): Observable<object> {
@@ -44,7 +46,7 @@ export class UsersService {
       switchMap(() => this.authService.revokeAccessToken()),
       tap(() => {
         this.authService.clearTokens();
-        window.location.href = window.location.origin;
+        window.location.href = this.locationStrategy.getBaseHref();
       })
     );
   }
