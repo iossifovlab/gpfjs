@@ -52,6 +52,12 @@ pipeline {
             topic: "${env.JOB_NAME}"
           )
         }
+
+        archiveArtifacts artifacts: 'packages/*.tar.gz',
+                   allowEmptyArchive: true,
+                   fingerprint: true,
+                   onlyIfSuccessful: true
+
       }
     }
     unstable {
