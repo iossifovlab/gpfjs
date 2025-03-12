@@ -60,20 +60,7 @@ pipeline {
 
       }
     }
-    success {
-        build job: '/iossifovlab/gpf-testing-instances/master',
-            parameters: [
-                string(name: 'GPFJS_COMMIT_ID', value: "${env.GIT_COMMIT}")
-            ],
-            wait: false
-    }
     unstable {
-        build job: '/iossifovlab/gpf-testing-instances/master',
-            parameters: [
-                string(name: 'GPFJS_COMMIT_ID', value: "${env.GIT_COMMIT}")
-            ],
-            wait: false
-
         script {
             load('build-scripts/libjenkinsfile/zulip-tagged-notification.groovy').zulipTaggedNotification()
         }
