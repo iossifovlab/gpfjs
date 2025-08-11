@@ -37,7 +37,7 @@ pipeline {
           junit 'coverage/junit-report.xml'
           sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
-          recordCoverage sourceCodeEncoding: 'ASCII', enabledForFailure: true, sourceCodeRetention: 'LAST_BUILD', tools: [
+          recordCoverage sourceCodeEncoding: 'UTF-8', enabledForFailure: true, sourceCodeRetention: 'LAST_BUILD', tools: [
             [parser: 'COBERTURA', pattern: 'coverage/cobertura-coverage.xml']
           ]
 
