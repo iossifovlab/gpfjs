@@ -38,7 +38,7 @@ pipeline {
           sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
           recordCoverage sourceCodeEncoding: 'ASCII', enabledForFailure: true, sourceCodeRetention: 'LAST_BUILD', tools: [
-            [tool: 'COBERTURA', pattern: 'coverage/cobertura-coverage.xml']
+            {tool: 'COBERTURA', pattern: 'coverage/cobertura-coverage.xml'}
           ]
 
           recordIssues(
